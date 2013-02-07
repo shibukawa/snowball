@@ -3,6 +3,8 @@
 c_src_dir = src_c
 java_src_main_dir = java/org/tartarus/snowball
 java_src_dir = $(java_src_main_dir)/ext
+python_src_dir = python
+jsx_src_dir = jsx
 
 libstemmer_algorithms = danish dutch english finnish french german hungarian \
 			italian \
@@ -23,8 +25,10 @@ COMPILER_SOURCES = compiler/space.c \
 		   compiler/tokeniser.c \
 		   compiler/analyser.c \
 		   compiler/generator.c \
-		   compiler/driver.c \
-		   compiler/generator_java.c
+		   compiler/generator_java.c \
+		   compiler/generator_python.c \
+		   compiler/generator_jsx.c \
+		   compiler/driver.c
 COMPILER_HEADERS = compiler/header.h \
 		   compiler/syswords.h \
 		   compiler/syswords2.h
@@ -38,6 +42,16 @@ JAVARUNTIME_SOURCES = java/org/tartarus/snowball/Among.java \
 		      java/org/tartarus/snowball/SnowballProgram.java \
 		      java/org/tartarus/snowball/SnowballStemmer.java \
 		      java/org/tartarus/snowball/TestApp.java
+
+PYTHON_RUNTIME_SOURCES = python_runtime/dummy.py
+
+JSX_RUNTIME_SOURCES = jsx/among.jsx \
+		      jsx/snowball-stemmer.jsx \
+		      jsx/testapp.jsx
+
+PYTHON_RUNTIME_SOURCES = python/among.py \
+		      	 python/snowball_stemmer.py \
+		         python/testapp.py
 
 LIBSTEMMER_SOURCES = libstemmer/libstemmer.c
 LIBSTEMMER_UTF8_SOURCES = libstemmer/libstemmer_utf8.c
@@ -58,6 +72,8 @@ C_LIB_HEADERS = $(libstemmer_algorithms:%=$(c_src_dir)/stem_UTF_8_%.h) \
 C_OTHER_SOURCES = $(other_algorithms:%=$(c_src_dir)/stem_UTF_8_%.c)
 C_OTHER_HEADERS = $(other_algorithms:%=$(c_src_dir)/stem_UTF_8_%.h)
 JAVA_SOURCES = $(libstemmer_algorithms:%=$(java_src_dir)/%Stemmer.java)
+PYTHON_SOURCES = $(libstemmer_algorithms:%=$(python_src_dir)/%_stemmer.py)
+JSX_SOURCES = $(libstemmer_algorithms:%=$(jsx_src_dir)/%-stemmer.jsx)
 
 COMPILER_OBJECTS=$(COMPILER_SOURCES:.c=.o)
 RUNTIME_OBJECTS=$(RUNTIME_SOURCES:.c=.o)
@@ -155,6 +171,22 @@ $(java_src_dir)/%Stemmer.java: algorithms/%/stem_Unicode.sbl snowball
 	echo "./snowball $< -j -o $${o} -p \"org.tartarus.snowball.SnowballStemmer\" -eprefix $${l}_ -r ../runtime -n $${l}Stemmer"; \
 	./snowball $< -j -o $${o} -p "org.tartarus.snowball.SnowballStemmer" -eprefix $${l}_ -r ../runtime -n $${l}Stemmer
 
+$(python_src_dir)/%_stemmer.py: algorithms/%/stem_Unicode.sbl snowball
+	@mkdir -p $(python_src_dir)
+	@l=`echo "$<" | sed 's!\(.*\)/stem_Unicode.sbl$$!\1!;s!^.*/!!'`; \
+	o="$(python_src_dir)/$${l}_temmer"; \
+	echo "./snowball $< -py -o $${o} -eprefix $${l}_ -r ../runtime -n $${l}Stemmer"; \
+	./snowball $< -py -o $${o} -eprefix $${l}_ -r ../runtime -n $${l}Stemmer
+	echo "./snowball $< -py -o $${o} -p \"SnowballStemmer\" -eprefix $${l}_ -r ../runtime -n `python -c "print('$${l}'.title())"`Stemmer"; \
+	./snowball $< -py -o $${o} -p "SnowballStemmer" -eprefix $${l}_ -r ../runtime -n `python -c "print('$${l}'.title())"`Stemmer
+
+$(jsx_src_dir)/%-stemmer.jsx: algorithms/%/stem_Unicode.sbl snowball
+	@mkdir -p $(jsx_src_dir)
+	@l=`echo "$<" | sed 's!\(.*\)/stem_Unicode.sbl$$!\1!;s!^.*/!!'`; \
+	o="$(jsx_src_dir)/$${l}-stemmer"; \
+	echo "./snowball $< -jsx -o $${o} -p \"SnowballStemmer\" -eprefix $${l}_ -r ../runtime -n `python -c "print('$${l}'.title())"`Stemmer"; \
+	./snowball $< -jsx -o $${o} -p "SnowballStemmer" -eprefix $${l}_ -r ../runtime -n `python -c "print('$${l}'.title())"`Stemmer
+
 splint: snowball.splint
 snowball.splint: $(COMPILER_SOURCES)
 	splint $^ >$@ -weak
@@ -251,6 +283,43 @@ dist_libstemmer_java: $(RUNTIME_SOURCES) $(RUNTIME_HEADERS) \
 	(cd dist && tar zcf $${destname}.tgz $${destname}) && \
 	rm -rf $${dest}
 
+dist_libstemmer_python: $(PYTHON_SOURCES)
+	destname=pystemmer; \
+	dest=dist/$${destname}; \
+	rm -rf $${dest} && \
+	rm -f $${dest}.tgz && \
+	mkdir -p $${dest} && \
+	mkdir -p $${dest}/$(python_src_dir) && \
+	cp -a $(PYTHON_SOURCES) $${dest}/$(python_src_dir) && \
+	cp -a $(PYTHON_RUNTIME_SOURCES) $${dest}/$(python_src_dir) && \
+	(cd $${dest} && \
+	 echo "README" >> MANIFEST && \
+	 ls $(python_src_dir)/*.py >> MANIFEST) && \
+	(cd dist && tar zcf $${destname}.tgz $${destname})
+
+dist_libstemmer_jsx: $(JSX_SOURCES)
+	destname=jsxstemmer; \
+	dest=dist/$${destname}; \
+	rm -rf $${dest} && \
+	rm -f $${dest}.tgz && \
+	mkdir -p $${dest} && \
+	mkdir -p $${dest}/$(jsx_src_dir) && \
+	cp -a $(JSX_RUNTIME_SOURCES) $${dest}/$(jsx_src_dir) && \
+	cp -a $(JSX_SOURCES) $${dest}/$(jsx_src_dir) && \
+	(cd $${dest} && \
+	 echo "README" >> MANIFEST && \
+	 ls $(jsx_src_dir)/*.jsx >> MANIFEST) && \
+	(cd dist && tar zcf $${destname}.tgz $${destname})
+
+check: check_utf8 check_iso_8859_1 check_iso_8859_2 check_koi8r
+
+check_utf8: $(libstemmer_algorithms:%=check_utf8_%)
+
+check_iso_8859_1: $(ISO_8859_1_algorithms:%=check_iso_8859_1_%)
+
+check_iso_8859_2: $(ISO_8859_2_algorithms:%=check_iso_8859_2_%)
+
+check_koi8r: $(KOI8_R_algorithms:%=check_koi8r_%)
 check: check_utf8 check_iso_8859_1 check_iso_8859_2 check_koi8r
 
 check_utf8: $(libstemmer_algorithms:%=check_utf8_%)

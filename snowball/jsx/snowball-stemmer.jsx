@@ -47,29 +47,29 @@ class SnowballStemmer
 	this.ket              = other.ket;
     }
 
-    function in_grouping (s : string, min : int, max : int) : boolean
+    function in_grouping (s : int[], min : int, max : int) : boolean
     {
 	if (this.cursor >= this.limit) return false;
 	var ch = this.current.charCodeAt(this.cursor);
 	if (ch > max || ch < min) return false;
 	ch -= min;
-	if ((s.charCodeAt(ch >>> 3) & (0x1 << (ch & 0x7))) == 0) return false;
+	if ((s[ch >>> 3] & (0x1 << (ch & 0x7))) == 0) return false;
 	this.cursor++;
 	return true;
     }
 
-    function in_grouping_b (s : string, min : int, max : int) : boolean
+    function in_grouping_b (s : int[], min : int, max : int) : boolean
     {
 	if (this.cursor <= this.limit_backward) return false;
 	var ch = this.current.charCodeAt(this.cursor - 1);
 	if (ch > max || ch < min) return false;
 	ch -= min;
-	if ((s.charCodeAt(ch >>> 3) & (0x1 << (ch & 0x7))) == 0) return false;
+	if ((s[ch >>> 3] & (0x1 << (ch & 0x7))) == 0) return false;
 	this.cursor--;
 	return true;
     }
 
-    function out_grouping (s : string, min : int, max : int) : boolean
+    function out_grouping (s : int[], min : int, max : int) : boolean
     {
 	if (this.cursor >= this.limit) return false;
 	var ch = this.current.charCodeAt(this.cursor);
@@ -78,14 +78,14 @@ class SnowballStemmer
 	    return true;
 	}
 	ch -= min;
-	if ((s.charCodeAt(ch >>> 3) & (0X1 << (ch & 0x7))) == 0) {
+	if ((s[ch >>> 3] & (0X1 << (ch & 0x7))) == 0) {
 	    this.cursor++;
 	    return true;
 	}
 	return false;
     }
 
-    function out_grouping_b (s : string, min : int, max : int) : boolean
+    function out_grouping_b (s : int[], min : int, max : int) : boolean
     {
 	if (this.cursor <= this.limit_backward) return false;
 	var ch = this.current.charCodeAt(this.cursor - 1);
@@ -94,7 +94,7 @@ class SnowballStemmer
 	    return true;
 	}
 	ch -= min;
-	if ((s.charCodeAt(ch >>> 3) & (0x1 << (ch & 0x7))) == 0) {
+	if ((s[ch >>> 3] & (0x1 << (ch & 0x7))) == 0) {
 	    this.cursor--;
 	    return true;
 	}
@@ -161,15 +161,15 @@ class SnowballStemmer
 
     function eq_v (s : string) : boolean
     {
-	return this.eq_s(s.length as string, s);
+	return this.eq_s(s.length, s);
     }
 
     function eq_v_b (s : string) : boolean
     {
-        return this.eq_s_b(s.length as string, s);
+        return this.eq_s_b(s.length, s);
     }
 
-    function find_among(v : Among[], v_size : int) : int
+    function find_among (v : Among[], v_size : int) : int
     {
 	var i = 0;
 	var j = v_size;
@@ -189,23 +189,29 @@ class SnowballStemmer
 	    var common = common_i < common_j ? common_i : common_j; // smaller
 	    var w = v[k];
 	    var i2;
-	    for (i2 = common; i2 < w.s_size; i2++) {
-		if (c + common == l) {
+	    for (i2 = common; i2 < w.s_size; i2++)
+            {
+		if (c + common == l)
+                {
 		    diff = -1;
 		    break;
 		}
-		diff = this.current.charAt(c + common) - w.s[i2];
+		diff = this.current.charCodeAt(c + common) - w.s.charCodeAt(i2);
 		if (diff != 0) break;
 		common++;
 	    }
-	    if (diff < 0) {
+	    if (diff < 0)
+            {
 		j = k;
 		common_j = common;
-	    } else {
+	    }
+            else
+            {
 		i = k;
 		common_i = common;
 	    }
-	    if (j - i <= 1) {
+	    if (j - i <= 1)
+            {
 		if (i > 0) break; // v->s has been inspected
 		if (j == i) break; // only one item in v
 
@@ -217,9 +223,11 @@ class SnowballStemmer
 		first_key_inspected = true;
 	    }
 	}
-	while(true) {
+	while (true)
+        {
 	    var w = v[i];
-	    if (common_i >= w.s_size) {
+	    if (common_i >= w.s_size)
+            {
 		this.cursor = c + w.s_size;
 		if (w.method == null) return w.result;
 		var res = false;
@@ -240,6 +248,7 @@ class SnowballStemmer
 	    i = w.substring_i;
 	    if (i < 0) return 0;
 	}
+        return -1; // not reachable
     }
 
     // find_among_b is for backwards processing. Same comments apply
@@ -256,42 +265,51 @@ class SnowballStemmer
 
 	var first_key_inspected = false;
 
-	while(true) {
+	while (true)
+        {
 	    var k = i + ((j - i) >> 1);
 	    var diff = 0;
 	    var common = common_i < common_j ? common_i : common_j;
 	    var w = v[k];
 	    var i2;
-	    for (i2 = w.s_size - 1 - common; i2 >= 0; i2--) {
-		if (c - common == lb) {
+	    for (i2 = w.s_size - 1 - common; i2 >= 0; i2--)
+            {
+		if (c - common == lb)
+                {
 		    diff = -1;
 		    break;
 		}
-		diff = this.current.charAt(c - 1 - common) - w.s[i2];
+		diff = this.current.charCodeAt(c - 1 - common) - w.s.charCodeAt(i2);
 		if (diff != 0) break;
 		common++;
 	    }
-	    if (diff < 0) {
+	    if (diff < 0)
+            {
 		j = k;
 		common_j = common;
-	    } else {
+	    }
+            else
+            {
 		i = k;
 		common_i = common;
 	    }
-	    if (j - i <= 1) {
+	    if (j - i <= 1)
+            {
 		if (i > 0) break;
 		if (j == i) break;
 		if (first_key_inspected) break;
 		first_key_inspected = true;
 	    }
 	}
-	while(true) {
+	while (true)
+        {
 	    var w = v[i];
-	    if (common_i >= w.s_size) {
+	    if (common_i >= w.s_size)
+            {
 		this.cursor = c - w.s_size;
 		if (w.method == null) return w.result;
 
-		var res : boolean;
+		var res = false;
 		/*try {
 		    Object resobj = w.method.invoke(w.methodobject,
 						    new Object[0]);
@@ -309,6 +327,7 @@ class SnowballStemmer
 	    i = w.substring_i;
 	    if (i < 0) return 0;
 	}
+        return -1; // not reachable
     }
 
     /* to replace chars between c_bra and c_ket in this.current by the

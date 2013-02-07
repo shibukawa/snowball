@@ -203,14 +203,18 @@ static void write_inc_cursor(struct generator * g, struct node * p) {
 
 static void wsetlab_begin(struct generator * g, int n) {
 
-    w(g, "~Mlab");
+    w(g, "~Mvar lab");
     write_int(g, n);
-    w(g, ": do {~+~N");
+    w(g, " = true;~N~Mlab");
+    write_int(g, n);
+    w(g, ": while (lab");
+    write_int(g, n);
+    w(g, " = false)~N{~N~+");
 }
 
 static void wsetlab_end(struct generator * g) {
 
-    w(g, "~-~M} while (false);~N");
+    w(g, "~-~M}~N");
 }
 
 static void wgotol(struct generator * g, int n) {
@@ -583,14 +587,14 @@ static void generate_set(struct generator * g, struct node * p) {
 
     write_comment(g, p);
     g->V[0] = p->name;
-    writef(g, "~M~this.V0 = true;~N", p);
+    writef(g, "~Mthis.~V0 = true;~N", p);
 }
 
 static void generate_unset(struct generator * g, struct node * p) {
 
     write_comment(g, p);
     g->V[0] = p->name;
-    writef(g, "~M~this.V0 = false;~N", p);
+    writef(g, "~Mthis.~V0 = false;~N", p);
 }
 
 static void generate_fail(struct generator * g, struct node * p) {
@@ -1038,7 +1042,7 @@ static void generate_grouping(struct generator * g, struct node * p, int complem
     if (q->no_gaps)
         write_failure_if(g, "!(this.~S1_range~S0(~I0, ~I1))", p);
     else
-        write_failure_if(g, "!(this.~S1_grouping~S0(this.~V0, ~I0, ~I1))", p);
+        write_failure_if(g, "!(this.~S1_grouping~S0(~n.~V0, ~I0, ~I1))", p);
 }
 
 static void generate_namedstring(struct generator * g, struct node * p) {
@@ -1358,7 +1362,7 @@ static void generate_grouping_table(struct generator * g, struct grouping * q) {
              write_int(g, map[i]);
              if (i < size - 1) w(g, ", ");
         }
-        w(g, "];~N~N");
+        w(g, "] : int[];~N~N");
     }
     lose_b(map);
 }
