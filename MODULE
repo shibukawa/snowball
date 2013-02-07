@@ -1,0 +1,7 @@
+Module: snowball
+Title: Snowball
+Author: Martin Porter <martin@tartarus.org>
+Maintainer: Richard Boulton <richard@tartarus.org>
+Description: Snowball is a small string processing language designed for creating stemming algorithms for use in Information Retrieval.  This module contains both the snowball compiler, stemming algorithms for several languages, and a library providing a simple interface to the main algorithms.
+Homepage: http://snowball.tartarus.org/
+Status: Active
