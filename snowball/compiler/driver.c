@@ -8,7 +8,7 @@
 #define DEFAULT_AMONG_CLASS "org.tartarus.snowball.Among"
 #define DEFAULT_STRING_CLASS "java.lang.StringBuilder"
 
-static int eq(char * s1, char * s2) {
+static int eq(const char * s1, const char * s2) {
     int s1_len = strlen(s1);
     int s2_len = strlen(s2);
     return s1_len == s2_len && memcmp(s1, s2, s1_len) == 0;
@@ -22,6 +22,12 @@ static void print_arglist(void) {
                     "             [-j[ava]]\n"
 #endif
                     "             [-c++]\n"
+#ifndef DISABLE_PYTHON
+                    "             [-py[thon]]\n"
+#endif
+#ifndef DISABLE_JSX
+                    "             [-jsx]\n"
+#endif
                     "             [-w[idechars]]\n"
                     "             [-u[tf8]]\n"
                     "             [-n[ame] class name]\n"
@@ -57,8 +63,8 @@ static FILE * get_output(symbol * b) {
     return output;
 }
 
-static void read_options(struct options * o, int argc, char * argv[]) {
-    char * s;
+static void read_options(struct options * o, int argc, const char * argv[]) {
+    const char * s;
     int i = 2;
 
     /* set defauts: */
@@ -89,42 +95,56 @@ static void read_options(struct options * o, int argc, char * argv[]) {
                 o->output_file = argv[i++];
                 continue;
             }
-            if (eq(s, "-n") || eq(s, "-name")) {
+            else if (eq(s, "-n") || eq(s, "-name")) {
                 check_lim(i, argc);
                 o->name = argv[i++];
                 continue;
             }
+#ifndef DISABLE_JSX
+            else if (eq(s, "-jsx")) {
+                o->make_lang = LANG_JSX;
+                o->widechars = true;
+                continue;
+            }
+#endif
 #ifndef DISABLE_JAVA
-            if (eq(s, "-j") || eq(s, "-java")) {
+            else if (eq(s, "-j") || eq(s, "-java")) {
                 o->make_lang = LANG_JAVA;
                 o->widechars = true;
                 continue;
             }
 #endif
-            if (eq(s, "-c++")) {
+            else if (eq(s, "-c++")) {
                 o->make_lang = LANG_CPLUSPLUS;
                 continue;
             }
-            if (eq(s, "-w") || eq(s, "-widechars")) {
+#ifndef DISABLE_PYTHON
+            else if (eq(s, "-py") || eq(s, "-python")) {
+                o->make_lang = LANG_PYTHON;
+                o->widechars = true;
+                continue;
+            }
+#endif
+            else if (eq(s, "-w") || eq(s, "-widechars")) {
                 o->widechars = true;
                 o->utf8 = false;
                 continue;
             }
-            if (eq(s, "-s") || eq(s, "-syntax")) {
+            else if (eq(s, "-s") || eq(s, "-syntax")) {
                 o->syntax_tree = true;
                 continue;
             }
-            if (eq(s, "-ep") || eq(s, "-eprefix")) {
+            else if (eq(s, "-ep") || eq(s, "-eprefix")) {
                 check_lim(i, argc);
                 o->externals_prefix = argv[i++];
                 continue;
             }
-            if (eq(s, "-vp") || eq(s, "-vprefix")) {
+            else if (eq(s, "-vp") || eq(s, "-vprefix")) {
                 check_lim(i, argc);
                 o->variables_prefix = argv[i++];
                 continue;
             }
-            if (eq(s, "-i") || eq(s, "-include")) {
+            else if (eq(s, "-i") || eq(s, "-include")) {
                 check_lim(i, argc);
 
                 {
@@ -139,33 +159,33 @@ static void read_options(struct options * o, int argc, char * argv[]) {
                 }
                 continue;
             }
-            if (eq(s, "-r") || eq(s, "-runtime")) {
+            else if (eq(s, "-r") || eq(s, "-runtime")) {
                 check_lim(i, argc);
                 o->runtime_path = argv[i++];
                 continue;
             }
-            if (eq(s, "-u") || eq(s, "-utf8")) {
+            else if (eq(s, "-u") || eq(s, "-utf8")) {
                 o->utf8 = true;
                 o->widechars = false;
                 continue;
             }
 #ifndef DISABLE_JAVA
-            if (eq(s, "-p") || eq(s, "-parentclassname")) {
+            else if (eq(s, "-p") || eq(s, "-parentclassname")) {
                 check_lim(i, argc);
                 o->parent_class_name = argv[i++];
                 continue;
             }
-            if (eq(s, "-P") || eq(s, "-Package")) {
+            else if (eq(s, "-P") || eq(s, "-Package")) {
                 check_lim(i, argc);
                 o->package = argv[i++];
                 continue;
             }
-            if (eq(s, "-S") || eq(s, "-stringclass")) {
+            else if (eq(s, "-S") || eq(s, "-stringclass")) {
                 check_lim(i, argc);
                 o->string_class = argv[i++];
                 continue;
             }
-            if (eq(s, "-a") || eq(s, "-amongclass")) {
+            else if (eq(s, "-a") || eq(s, "-amongclass")) {
                 check_lim(i, argc);
                 o->among_class = argv[i++];
                 continue;
@@ -177,7 +197,7 @@ static void read_options(struct options * o, int argc, char * argv[]) {
     }
 }
 
-extern int main(int argc, char * argv[]) {
+extern int main(int argc, const char * argv[]) {
 
     NEW(options, o);
     if (argc == 1) print_arglist();
@@ -203,7 +223,7 @@ extern int main(int argc, char * argv[]) {
             unless (o->syntax_tree) {
                 struct generator * g;
 
-                char * s = o->output_file;
+                const char * s = o->output_file;
                 unless (s) {
                     fprintf(stderr, "Please include the -o option\n");
                     print_arglist();
@@ -236,6 +256,30 @@ extern int main(int argc, char * argv[]) {
                     generate_program_java(g);
                     close_generator_java(g);
                     fclose(o->output_java);
+                }
+#endif
+#ifndef DISABLE_PYTHON
+                if (o->make_lang == LANG_PYTHON) {
+                    symbol * b = add_s_to_b(0, s);
+                    b = add_s_to_b(b, ".py");
+                    o->output_python = get_output(b);
+                    lose_b(b);
+                    g = create_generator_python(a, o);
+                    generate_program_python(g);
+                    close_generator_python(g);
+                    fclose(o->output_python);
+                }
+#endif
+#ifndef DISABLE_JSX
+                if (o->make_lang == LANG_JSX) {
+                    symbol * b = add_s_to_b(0, s);
+                    b = add_s_to_b(b, ".jsx");
+                    o->output_jsx = get_output(b);
+                    lose_b(b);
+                    g = create_generator_jsx(a, o);
+                    generate_program_jsx(g);
+                    close_generator_jsx(g);
+                    fclose(o->output_jsx);
                 }
 #endif
             }
