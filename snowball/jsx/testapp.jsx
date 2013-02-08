@@ -1,4 +1,8 @@
-/*import "danish-stemmer.jsx";
+// Stemmer library sample for JSX
+
+import "snowball-stemmer.jsx";
+
+import "danish-stemmer.jsx";
 import "dutch-stemmer.jsx";
 import "english-stemmer.jsx";
 import "finnish-stemmer.jsx";
@@ -13,30 +17,30 @@ import "romanian-stemmer.jsx";
 import "russian-stemmer.jsx";
 import "spanish-stemmer.jsx";
 import "swedish-stemmer.jsx";
-import "turkish-stemmer.jsx";*/
+import "turkish-stemmer.jsx";
 
-import "english-stemmer.jsx";
 
 class _Main
 {
-
-    static function usage() : void
+    static function usage () : void
     {
+        log "$ jsx --run testapp.jsx <algorithm> \"sentence\"...";
     }
 
     static function main (args : string[]) : void
     {
-	/*if (args.length < 2) {
-            usage();
+	if (args.length < 1) {
+            _Main.usage();
             return;
-        }*/
-
-        var stemmers = {
-            English: EnglishStemmer
-        };
-
-        var stemmer = new EnglishStemmer;
-        var words = args[0].split(/\s\.-/);
+        }
+        var algorithm = "English";
+        if (args.length > 1)
+        {
+            algorithm = args.shift();
+        }
+        var stemmer = _Main.create(algorithm);
+        var words = args[0].split(/[\s\.-]/);
+        log words;
         var repeat = 4;
         for (var i = 0; i < words.length; i++)
         {
@@ -51,52 +55,65 @@ class _Main
             }
             log stemmer.getCurrent();
         }
-        /*SnowballStemmer stemmer = (SnowballStemmer) stemClass.newInstance();
+    }
 
-	Reader reader;
-	reader = new InputStreamReader(new FileInputStream(args[1]));
-	reader = new BufferedReader(reader);
-
-	StringBuffer input = new StringBuffer();
-
-        OutputStream outstream;
-
-	if (args.length > 2) {
-            if (args.length >= 4 && args[2].equals("-o")) {
-                outstream = new FileOutputStream(args[3]);
-            } else {
-                usage();
-                return;
-            }
-	} else {
-	    outstream = System.out;
-	}
-	Writer output = new OutputStreamWriter(outstream);
-	output = new BufferedWriter(output);
-
-	int repeat = 1;
-	if (args.length > 4) {
-	    repeat = Integer.parseInt(args[4]);
-	}
-
-	Object [] emptyArgs = new Object[0];
-	int character;
-	while ((character = reader.read()) != -1) {
-	    char ch = (char) character;
-	    if (Character.isWhitespace((char) ch)) {
-		if (input.length() > 0) {
-		    stemmer.setCurrent(input.toString());
-		    for (int i = repeat; i != 0; i--) {
-			stemmer.stem();
-		    }
-		    output.write(stemmer.getCurrent());
-		    output.write('\n');
-		    input.delete(0, input.length());
-		}
-	    } else {
-		input.append(Character.toLowerCase(ch));
-	    }
-	}
-	output.flush();*/
+    static function create (algorithm : string) : SnowballStemmer
+    {
+        var stemmer : SnowballStemmer;
+        switch (algorithm.toLowerCase())
+        {
+        case "danish":
+            stemmer = new DanishStemmer();
+            break;
+        case "dutch":
+            stemmer = new DutchStemmer();
+            break;
+        case "english":
+            stemmer = new EnglishStemmer();
+            break;
+        case "finnish":
+            stemmer = new FinnishStemmer();
+            break;
+        case "french":
+            stemmer = new FrenchStemmer();
+            break;
+        case "german":
+            stemmer = new GermanStemmer();
+            break;
+        case "hungarian":
+            stemmer = new HungarianStemmer();
+            break;
+        case "italian":
+            stemmer = new ItalianStemmer();
+            break;
+        case "norwegian":
+            stemmer = new NorwegianStemmer();
+            break;
+        case "porter":
+            stemmer = new PorterStemmer();
+            break;
+        case "portuguese":
+            stemmer = new PortugueseStemmer();
+            break;
+        case "romanian":
+            stemmer = new RomanianStemmer();
+            break;
+        case "russian":
+            stemmer = new RussianStemmer();
+            break;
+        case "spanish":
+            stemmer = new SpanishStemmer();
+            break;
+        case "swedish":
+            stemmer = new SwedishStemmer();
+            break;
+        case "turkish":
+            stemmer = new TurkishStemmer();
+            break;
+        default:
+            stemmer = new EnglishStemmer();
+            break;
+        }
+        return stemmer;
     }
 }

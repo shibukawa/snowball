@@ -51,7 +51,6 @@ static void write_newline(struct generator * g) {
 }
 
 static void write_string(struct generator * g, const char * s) {
-
     str_append_string(g->outbuf, s);
 }
 
@@ -202,14 +201,10 @@ static void write_inc_cursor(struct generator * g, struct node * p) {
 }
 
 static void wsetlab_begin(struct generator * g, int n) {
-
-    w(g, "~Mvar lab");
-    write_int(g, n);
-    w(g, " = true;~N~Mlab");
-    write_int(g, n);
-    w(g, ": while (lab");
-    write_int(g, n);
-    w(g, " = false)~N{~N~+");
+    g->I[0] = n;
+    w(g, "~Mvar lab~I0 = true;~N");
+    w(g, "~Mlab~I0: while (lab~I0 == true)~N~M{~N");
+    w(g, "~+~Mlab~I0 = false;~N");
 }
 
 static void wsetlab_end(struct generator * g) {
@@ -1066,13 +1061,31 @@ static void generate_literalstring(struct generator * g, struct node * p) {
 static void generate_define(struct generator * g, struct node * p) {
 
     struct name * q = p->name;
-
+    symbol stem[] = {'s', 't', 'e', 'm'};
+    int find = 0;
+    if (SIZE(q->b) == 4)
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            if (q->b[i] != stem[i])
+            {
+                break;
+            }
+        }
+        find = 1;
+    }
     struct str * saved_output = g->outbuf;
     struct str * saved_declarations = g->declarations;
 
     g->V[0] = q;
-    w(g, "~N~Mfunction ~V0 () : boolean~N~M{~+~N");
-
+    if (find == 1)
+    {
+        w(g, "~N~Moverride function ~V0 () : boolean~N~M{~+~N");
+    }
+    else
+    {
+        w(g, "~N~Mfunction ~V0 () : boolean~N~M{~+~N");
+    }
     g->outbuf = str_new();
     g->declarations = str_new();
 
@@ -1318,7 +1331,7 @@ static void generate_among_table(struct generator * g, struct among * x) {
             if (v->function != 0) {
                 write_varname(g, v->function);
             }
-            w(g, "\", ~n.methodObject as variant)~S0~N");
+            w(g, "\", ~n.methodObject)~S0~N");
             v++;
         }
     }

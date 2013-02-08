@@ -389,4 +389,9 @@ class SnowballStemmer
     {
         return this.current.slice(0, this.limit);
     }
+
+    function stem () : boolean 
+    {
+        return false;
+    }
 }

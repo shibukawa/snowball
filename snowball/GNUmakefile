@@ -4,7 +4,8 @@ c_src_dir = src_c
 java_src_main_dir = java/org/tartarus/snowball
 java_src_dir = $(java_src_main_dir)/ext
 python_src_dir = python
-jsx_src_dir = jsx
+jsx_src_dir = lib
+jsx_sample_dir = sample
 
 libstemmer_algorithms = danish dutch english finnish french german hungarian \
 			italian \
@@ -46,8 +47,8 @@ JAVARUNTIME_SOURCES = java/org/tartarus/snowball/Among.java \
 PYTHON_RUNTIME_SOURCES = python_runtime/dummy.py
 
 JSX_RUNTIME_SOURCES = jsx/among.jsx \
-		      jsx/snowball-stemmer.jsx \
-		      jsx/testapp.jsx
+		      jsx/snowball-stemmer.jsx
+JSX_SAMPLE_SOURCES = jsx/testapp.jsx \
 
 PYTHON_RUNTIME_SOURCES = python/among.py \
 		      	 python/snowball_stemmer.py \
@@ -192,7 +193,7 @@ snowball.splint: $(COMPILER_SOURCES)
 	splint $^ >$@ -weak
 
 # Make a full source distribution
-dist: dist_snowball dist_libstemmer_c dist_libstemmer_java
+dist: dist_snowball dist_libstemmer_c dist_libstemmer_java dist_libstemmer_jsx
 
 # Make a distribution of all the sources involved in snowball
 dist_snowball: $(COMPILER_SOURCES) $(COMPILER_HEADERS) \
@@ -304,12 +305,17 @@ dist_libstemmer_jsx: $(JSX_SOURCES)
 	rm -f $${dest}.tgz && \
 	mkdir -p $${dest} && \
 	mkdir -p $${dest}/$(jsx_src_dir) && \
+	mkdir -p $${dest}/$(jsx_sample_dir) && \
+	cp -a doc/libstemmer_jsx_README $${dest}/README && \
 	cp -a $(JSX_RUNTIME_SOURCES) $${dest}/$(jsx_src_dir) && \
+	cp -a $(JSX_SAMPLE_SOURCES) $${dest}/$(jsx_sample_dir) && \
 	cp -a $(JSX_SOURCES) $${dest}/$(jsx_src_dir) && \
 	(cd $${dest} && \
 	 echo "README" >> MANIFEST && \
-	 ls $(jsx_src_dir)/*.jsx >> MANIFEST) && \
-	(cd dist && tar zcf $${destname}.tgz $${destname})
+	 ls $(jsx_src_dir)/*.jsx >> MANIFEST && \
+	 ls $(jsx_sample_dir)/*.jsx >> MANIFEST) && \
+	(cd dist && tar zcf $${destname}.tgz $${destname}) && \
+	rm -rf $${dest}
 
 check: check_utf8 check_iso_8859_1 check_iso_8859_2 check_koi8r
 
