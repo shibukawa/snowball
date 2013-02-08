@@ -19,7 +19,6 @@ import "spanish-stemmer.jsx";
 import "swedish-stemmer.jsx";
 import "turkish-stemmer.jsx";
 
-
 class _Main
 {
     static function usage () : void
@@ -40,7 +39,6 @@ class _Main
         }
         var stemmer = _Main.create(algorithm);
         var words = args[0].split(/[\s\.-]/);
-        log words;
         var repeat = 4;
         for (var i = 0; i < words.length; i++)
         {
@@ -48,12 +46,8 @@ class _Main
             {
                 continue;
             }
-            stemmer.setCurrent(words[i].toLowerCase());
-            for (var j = 0; j < repeat; j++)
-            {
-                stemmer.stem();
-            }
-            log stemmer.getCurrent();
+            var original = words[i].toLowerCase();
+            log original + " -> " + stemmer.stem(original, repeat);
         }
     }
 

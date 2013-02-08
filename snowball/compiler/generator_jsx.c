@@ -233,6 +233,7 @@ static void write_failure(struct generator * g) {
     {
         case x_return:
             write_string(g, "return false;");
+            g->unreachable = true;
             break;
         default:
             write_string(g, "break lab");
@@ -762,7 +763,7 @@ static void generate_atleast(struct generator * g, struct node * p) {
         g->failure_str = a1;
     }
     g->B[0] = str_data(loopvar);
-    write_failure_if(g, "this.~B0 > 0", p);
+    write_failure_if(g, "~B0 > 0", p);
     w(g, "~}");
     str_delete(loopvar);
 }
@@ -1065,14 +1066,15 @@ static void generate_define(struct generator * g, struct node * p) {
     int find = 0;
     if (SIZE(q->b) == 4)
     {
+        find = 1;
         for (int i = 0; i < 4; i++)
         {
             if (q->b[i] != stem[i])
             {
+                find = 0;
                 break;
             }
         }
-        find = 1;
     }
     struct str * saved_output = g->outbuf;
     struct str * saved_declarations = g->declarations;

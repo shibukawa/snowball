@@ -5,6 +5,7 @@ java_src_main_dir = java/org/tartarus/snowball
 java_src_dir = $(java_src_main_dir)/ext
 python_src_dir = python
 jsx_src_dir = lib
+jsx_runtime_dir = jsx
 jsx_sample_dir = sample
 
 libstemmer_algorithms = danish dutch english finnish french german hungarian \
@@ -49,6 +50,7 @@ PYTHON_RUNTIME_SOURCES = python_runtime/dummy.py
 JSX_RUNTIME_SOURCES = jsx/among.jsx \
 		      jsx/snowball-stemmer.jsx
 JSX_SAMPLE_SOURCES = jsx/testapp.jsx \
+		     jsx/stemwords.jsx
 
 PYTHON_RUNTIME_SOURCES = python/among.py \
 		      	 python/snowball_stemmer.py \
@@ -60,6 +62,8 @@ LIBSTEMMER_HEADERS = include/libstemmer.h libstemmer/modules.h libstemmer/module
 LIBSTEMMER_EXTRA = libstemmer/modules.txt libstemmer/modules_utf8.txt libstemmer/libstemmer_c.in
 
 STEMWORDS_SOURCES = examples/stemwords.c
+
+JSX_STEMWORDS_SOURCE = jsx/stemwords.jsx
 
 ALL_ALGORITHM_FILES = $(all_algorithms:%=algorithms/%/stem*.sbl)
 C_LIB_SOURCES = $(libstemmer_algorithms:%=$(c_src_dir)/stem_UTF_8_%.c) \
@@ -130,6 +134,9 @@ libstemmer.o: libstemmer/libstemmer.o $(RUNTIME_OBJECTS) $(C_LIB_OBJECTS)
 
 stemwords: $(STEMWORDS_OBJECTS) libstemmer.o
 	$(CC) -o $@ $^
+
+jsx_stemwords: $(JSX_STEMWORDS_SOURCE) $(JSX_SOURCES)
+	jsx --executable node --output $@ --add-search-path $(jsx_src_dir) --add-search-path $(jsx_runtime_dir) $(JSX_STEMWORDS_SOURCE)
 
 algorithms/%/stem_Unicode.sbl: algorithms/%/stem_ISO_8859_1.sbl
 	cp $^ $@
@@ -306,20 +313,20 @@ dist_libstemmer_jsx: $(JSX_SOURCES)
 	mkdir -p $${dest} && \
 	mkdir -p $${dest}/$(jsx_src_dir) && \
 	mkdir -p $${dest}/$(jsx_sample_dir) && \
-	cp -a doc/libstemmer_jsx_README $${dest}/README && \
+	cp -a doc/libstemmer_jsx_README.rst $${dest}/README.rst && \
+	cp -a doc/libstemmer_jsx_LICENSE.rst $${dest}/LICENSE.rst && \
 	cp -a $(JSX_RUNTIME_SOURCES) $${dest}/$(jsx_src_dir) && \
 	cp -a $(JSX_SAMPLE_SOURCES) $${dest}/$(jsx_sample_dir) && \
 	cp -a $(JSX_SOURCES) $${dest}/$(jsx_src_dir) && \
 	(cd $${dest} && \
-	 echo "README" >> MANIFEST && \
+	 echo "README.rst" >> MANIFEST && \
+	 echo "LICENSE.rst" >> MANIFEST && \
 	 ls $(jsx_src_dir)/*.jsx >> MANIFEST && \
 	 ls $(jsx_sample_dir)/*.jsx >> MANIFEST) && \
 	(cd dist && tar zcf $${destname}.tgz $${destname}) && \
 	rm -rf $${dest}
 
 check: check_utf8 check_iso_8859_1 check_iso_8859_2 check_koi8r
-
-check_utf8: $(libstemmer_algorithms:%=check_utf8_%)
 
 check_iso_8859_1: $(ISO_8859_1_algorithms:%=check_iso_8859_1_%)
 
@@ -364,3 +371,18 @@ check_koi8r_%: ../data/% stemwords
 	@iconv -fUTF8 -tKOI8R $</voc.txt|./stemwords -c KOI8_R -l `echo $<|sed 's!.*/!!'` -o tmp.txt
 	@iconv -fUTF8 -tKOI8R $</output.txt|diff -u - tmp.txt
 	@rm tmp.txt
+
+
+check_jsx: $(libstemmer_algorithms:%=check_jsx_%)
+
+check_jsx_%: ../data/% jsx_stemwords
+	@echo "Checking output of `echo $<|sed 's!.*/!!'` stemmer with UTF-8"
+	@./jsx_stemwords -c utf8 -l `echo $<|sed 's!.*/!!'` -i $</voc.txt -o tmp.txt
+	@diff -u $</output.txt tmp.txt
+	@if [ -e $</diffs.txt ] ; \
+	then \
+	  ./jsx_stemwords -c utf8 -l `echo $<|sed 's!.*/!!'` -i $</voc.txt -o tmp.txt -p2 && \
+	  diff -u $</diffs.txt tmp.txt; \
+	fi
+	@rm tmp.txt
+

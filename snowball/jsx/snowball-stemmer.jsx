@@ -390,8 +390,18 @@ class SnowballStemmer
         return this.current.slice(0, this.limit);
     }
 
-    function stem () : boolean 
+    function stem () : boolean
     {
         return false;
+    }
+
+    function stem (input : string, limit : int) : string
+    {
+        this.setCurrent(input);
+        for (var i = 0; i < limit; i++)
+        {
+            this.stem();
+        }
+        return this.getCurrent();
     }
 }
