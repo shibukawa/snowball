@@ -48,7 +48,8 @@ JAVARUNTIME_SOURCES = java/org/tartarus/snowball/Among.java \
 PYTHON_RUNTIME_SOURCES = python_runtime/dummy.py
 
 JSX_RUNTIME_SOURCES = jsx/among.jsx \
-		      jsx/snowball-stemmer.jsx
+		      jsx/snowball-stemmer.jsx \
+		      jsx/stemmer.jsx
 JSX_SAMPLE_SOURCES = jsx/testapp.jsx \
 		     jsx/stemwords.jsx
 
@@ -105,10 +106,12 @@ clean:
 	      $(C_LIB_SOURCES) $(C_LIB_HEADERS) $(C_LIB_OBJECTS) \
 	      $(C_OTHER_SOURCES) $(C_OTHER_HEADERS) $(C_OTHER_OBJECTS) \
 	      $(JAVA_SOURCES) $(JAVA_CLASSES) $(JAVA_RUNTIME_CLASSES) \
+	      $(JSX_SOURCES) jsx_stemwords \
               libstemmer/mkinc.mak libstemmer/mkinc_utf8.mak \
               libstemmer/libstemmer.c libstemmer/libstemmer_utf8.c
 	rm -rf dist
 	rmdir $(c_src_dir) || true
+	rmdir $(jsx_src_dir) || true
 
 snowball: $(COMPILER_OBJECTS)
 	$(CC) -o $@ $^

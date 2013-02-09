@@ -1,6 +1,7 @@
+import "stemmer.jsx";
 import "among.jsx";
 
-class SnowballStemmer
+class SnowballStemmer implements Stemmer
 {
     // this.current string
     var current : string;
@@ -343,32 +344,32 @@ class SnowballStemmer
 	return adjustment;
     }
 
-    function slice_check () : void
+    function slice_check () : boolean
     {
-	if (this.bra < 0 ||
-	    this.bra > this.ket ||
-	    this.ket > this.limit ||
-	    this.limit > this.current.length)   // this line could be removed
-	{
-	    log "faulty slice operation";
-	// FIXME: report error somehow.
-	/*
-	    fprintf(stderr, "faulty slice operation:\n");
-	    debug(z, -1, 0);
-	    exit(1);
-	    */
-	}
+        if (this.bra < 0 ||
+            this.bra > this.ket ||
+            this.ket > this.limit ||
+            this.limit > this.current.length)
+        {
+            return false;
+        }
+        return true;
     }
 
-    function slice_from (s : string) : void
+    function slice_from (s : string) : boolean
     {
-	this.slice_check();
-	this.replace_s(this.bra, this.ket, s);
+        var result = false;
+	if (this.slice_check())
+        {
+	    this.replace_s(this.bra, this.ket, s);
+            result = true;
+        }
+        return result;
     }
 
-    function slice_del () : void
+    function slice_del () : boolean
     {
-	this.slice_from("");
+	return this.slice_from("");
     }
 
     function insert (c_bra : int, c_ket : int, s : string) : void
@@ -379,10 +380,14 @@ class SnowballStemmer
     }
 
     /* Copy the slice into the supplied StringBuffer */
-    function slice_to (s : string) : string
+    function slice_to (s : string) : Nullable.<string>
     {
-	this.slice_check();
-        return this.current.slice(this.bra, this.ket);
+        var result : Nullable.<string> = null;
+	if (this.slice_check())
+        {
+            result = this.current.slice(this.bra, this.ket);
+        }
+        return result;
     }
 
     function assign_to (s : string) : string
@@ -395,10 +400,17 @@ class SnowballStemmer
         return false;
     }
 
-    function stem (input : string, limit : int) : string
+    override function stem (input : string) : string
     {
         this.setCurrent(input);
-        for (var i = 0; i < limit; i++)
+        this.stem();
+        return this.getCurrent();
+    }
+
+    override function stem (input : string, repeat : int) : string
+    {
+        this.setCurrent(input);
+        for (var i = 0; i < repeat; i++)
         {
             this.stem();
         }

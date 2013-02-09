@@ -33,6 +33,7 @@ You can use each stemming modules from JSX program.
 
 Following modules are common modules. Don't forget bundle these modules to your program:
 
+* ``stemmer.jsx``
 * ``among.jsx``
 * ``snowball-stemmer.jsx``
 
@@ -59,17 +60,17 @@ You can use this module from JavaScript. Following command converts your needed 
 
 .. code-block:: bash
 
-   $ jsx --executable web --output stemmer.js german-stemmer.jsx
+   $ jsx --executable web --output stemmer.js english-stemmer.jsx
 
 .. code-block:: html
 
    <html>
-   <script type="text/javascript" src="stemmer.jsx.js"></script>
+   <script type="text/javascript" src="stemmer.js"></script>
    <script type="text/javascript">
    window.onload = function() {
-       var Stemmer require("german-stemmer.jsx").GermanStemmer$;
+       var Stemmer require("english-stemmer.jsx").EnglishStemmer$;
        var stemmer = new Stemmer();
-       var result = stemmer.stem$SI("We are the world", 10);
+       var result = stemmer.stem$S("We are the world");
    };
    </script>
    </html>

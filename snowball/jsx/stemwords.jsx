@@ -1,5 +1,5 @@
 import "js/nodejs.jsx";
-import "snowball-stemmer.jsx";
+import "stemmer.jsx";
 
 import "danish-stemmer.jsx";
 import "dutch-stemmer.jsx";
@@ -125,14 +125,21 @@ class _Main
         for (var i in lines)
         {
             var original = lines[i];
-            var stemmed = stemmer.stem(original, 10);
+            var stemmed = stemmer.stem(original);
+            if (result.length != 0)
+            {
+                result.push('\n');
+            }
             switch (pretty)
             {
             case 0:
-                result.push(stemmed, "\n");
+                if (stemmed != "")
+                {
+                    result.push(stemmed);
+                }
                 break;
             case 1:
-                result.push(original, " -> ", stemmed, "\n");
+                result.push(original, " -> ", stemmed);
                 break;
             case 2:
                 result.push(original);
@@ -151,15 +158,15 @@ class _Main
                         result.push(" ");
                     }
                 }
-                result.push(stemmed, "\n");
+                result.push(stemmed);
             }
         }
         node.fs.writeFileSync(output, result.join(""), encoding);
     }
 
-    static function create (algorithm : string) : SnowballStemmer
+    static function create (algorithm : string) : Stemmer
     {
-        var stemmer : SnowballStemmer;
+        var stemmer : Stemmer;
         switch (algorithm.toLowerCase())
         {
         case "danish":

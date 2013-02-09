@@ -1,6 +1,6 @@
 // Stemmer library sample for JSX
 
-import "snowball-stemmer.jsx";
+import "stemmer.jsx";
 
 import "danish-stemmer.jsx";
 import "dutch-stemmer.jsx";
@@ -39,7 +39,6 @@ class _Main
         }
         var stemmer = _Main.create(algorithm);
         var words = args[0].split(/[\s\.-]/);
-        var repeat = 4;
         for (var i = 0; i < words.length; i++)
         {
             if (words[i] == '')
@@ -47,13 +46,13 @@ class _Main
                 continue;
             }
             var original = words[i].toLowerCase();
-            log original + " -> " + stemmer.stem(original, repeat);
+            log original + " -> " + stemmer.stem(original);
         }
     }
 
-    static function create (algorithm : string) : SnowballStemmer
+    static function create (algorithm : string) : Stemmer
     {
-        var stemmer : SnowballStemmer;
+        var stemmer : Stemmer;
         switch (algorithm.toLowerCase())
         {
         case "danish":

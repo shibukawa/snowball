@@ -233,13 +233,13 @@ static void write_failure(struct generator * g) {
     {
         case x_return:
             write_string(g, "return false;");
-            g->unreachable = true;
+            //g->unreachable = true;
             break;
         default:
             write_string(g, "break lab");
             write_int(g, g->failure_label);
             write_string(g, ";");
-            g->unreachable = true;
+            //g->unreachable = true;
     }
     write_newline(g);
 }
@@ -818,7 +818,10 @@ static void generate_hop(struct generator * g, struct node * p) {
 static void generate_delete(struct generator * g, struct node * p) {
 
     write_comment(g, p);
-    writef(g, "~Mthis.slice_del();~N", p);
+    writef(g, "~Mif (!this.slice_del())~N"
+              "~M{~N"
+              "~+~Mreturn false;~N~-"
+              "~M}~N", p);
 }
 
 
@@ -869,7 +872,12 @@ static void generate_sliceto(struct generator * g, struct node * p) {
 
     write_comment(g, p);
     g->V[0] = p->name;
-    writef(g, "~Mthis.~V0 = this.slice_to(this.~V0);~N", p);
+    writef(g, "~Mthis.~V0 = this.slice_to(this.~V0);~N"
+              "~Mif (~V0 == null)~N"
+              "~M{~N"
+              "~+~Mreturn false;~N~-"
+              "~M}~N"
+            , p);
 }
 
 static void generate_address(struct generator * g, struct node * p) {
@@ -914,9 +922,12 @@ static void generate_assignfrom(struct generator * g, struct node * p) {
 static void generate_slicefrom(struct generator * g, struct node * p) {
 
     write_comment(g, p);
-    w(g, "~Mthis.slice_from(");
+    w(g, "~Mif (!this.slice_from(");
     generate_address(g, p);
-    writef(g, ");~N", p);
+    writef(g, "))~N"
+              "~M{~N"
+              "~+~Mreturn false;~N~-"
+              "~M}~N", p);
 }
 
 static void generate_setlimit(struct generator * g, struct node * p) {
