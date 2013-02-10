@@ -27,7 +27,7 @@ You can use each stemming modules from JSX program.
        function constructor (argv string[]) : void
        {
            var stemmer = new EnglishStemmer();
-           log stemmer.stem("We are the world", 10);
+           log stemmer.stem("We are the world");
        }
    }
 
