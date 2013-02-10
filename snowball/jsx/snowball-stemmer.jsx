@@ -230,21 +230,16 @@ class SnowballStemmer implements Stemmer
 	    if (common_i >= w.s_size)
             {
 		this.cursor = c + w.s_size;
-		if (w.method == null) return w.result;
-		var res = false;
-		/*try {
-		    var resobj = w.method.invoke(w.methodobject,
-						    new Object[0]);
-		    res = resobj.toString().equals("true");
-		} catch (e : InvocationTargetException e) {
-		    res = false;
-		    // FIXME - debug message
-		} catch (IllegalAccessException e) {
-		    res = false;
-		    // FIXME - debug message
-		}*/
+		if (w.method == null)
+                {
+                    return w.result;
+                }
+		var res = w.method(w.instance);
 		this.cursor = c + w.s_size;
-		if (res) return w.result;
+		if (res)
+                {
+                    return w.result;
+                }
 	    }
 	    i = w.substring_i;
 	    if (i < 0) return 0;
@@ -309,19 +304,7 @@ class SnowballStemmer implements Stemmer
             {
 		this.cursor = c - w.s_size;
 		if (w.method == null) return w.result;
-
-		var res = false;
-		/*try {
-		    Object resobj = w.method.invoke(w.methodobject,
-						    new Object[0]);
-		    res = resobj.toString().equals("true");
-		} catch (InvocationTargetException e) {
-		    res = false;
-		    // FIXME - debug message
-		} catch (IllegalAccessException e) {
-		    res = false;
-		    // FIXME - debug message
-		}*/
+		var res = w.method(this);
 		this.cursor = c - w.s_size;
 		if (res) return w.result;
 	    }
@@ -380,9 +363,9 @@ class SnowballStemmer implements Stemmer
     }
 
     /* Copy the slice into the supplied StringBuffer */
-    function slice_to (s : string) : Nullable.<string>
+    function slice_to (s : string) : string
     {
-        var result : Nullable.<string> = null;
+        var result = '';
 	if (this.slice_check())
         {
             result = this.current.slice(this.bra, this.ket);

@@ -233,7 +233,7 @@ static void write_failure(struct generator * g) {
     {
         case x_return:
             write_string(g, "return false;");
-            //g->unreachable = true;
+            g->unreachable = true;
             break;
         default:
             write_string(g, "break lab");
@@ -873,7 +873,7 @@ static void generate_sliceto(struct generator * g, struct node * p) {
     write_comment(g, p);
     g->V[0] = p->name;
     writef(g, "~Mthis.~V0 = this.slice_to(this.~V0);~N"
-              "~Mif (~V0 == null)~N"
+              "~Mif (this.~V0 == '')~N"
               "~M{~N"
               "~+~Mreturn false;~N~-"
               "~M}~N"
@@ -1333,18 +1333,25 @@ static void generate_among_table(struct generator * g, struct among * x) {
     w(g, "~Mstatic const a_~I0 = [~N~+");
     {
         int i;
-        for (i = 0; i < x->literalstring_count; i++) {
+        for (i = 0; i < x->literalstring_count; i++)
+        {
             g->I[0] = i;
             g->I[1] = v->i;
             g->I[2] = v->result;
             g->L[0] = v->b;
             g->S[0] = i < x->literalstring_count - 1 ? "," : "";
 
-            w(g, "~Mnew Among(~L0, ~I1, ~I2, \"");
-            if (v->function != 0) {
+            w(g, "~Mnew Among(~L0, ~I1, ~I2, ");
+            if (v->function != 0)
+            {
+                w(g, "((instance : SnowballStemmer) : boolean -> (instance as ~n).");
                 write_varname(g, v->function);
+                w(g, "()), ~n.methodObject)~S0~N");
             }
-            w(g, "\", ~n.methodObject)~S0~N");
+            else
+            {
+                w(g, "null, null)~S0~N");
+            }
             v++;
         }
     }
