@@ -11,9 +11,18 @@ class Among
     var method : Nullable.<(SnowballStemmer) -> boolean>;
                                 /* method to use if substring matches */
 
+    function constructor (s : string, substring_i : int, result : int)
+    {
+        this.s_size = s.length;
+        this.s = s;
+        this.substring_i = substring_i;
+	this.result = result;
+        this.method = null;
+	this.instance = null;
+    }
+
     function constructor (s : string, substring_i : int, result : int,
-                          method : Nullable.<(SnowballStemmer) -> boolean>,
-                          instance : Nullable.<SnowballStemmer>)
+                          method : (SnowballStemmer) -> boolean, instance : SnowballStemmer)
     {
         this.s_size = s.length;
         this.s = s;

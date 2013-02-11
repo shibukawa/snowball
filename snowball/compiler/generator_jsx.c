@@ -1341,17 +1341,14 @@ static void generate_among_table(struct generator * g, struct among * x) {
             g->L[0] = v->b;
             g->S[0] = i < x->literalstring_count - 1 ? "," : "";
 
-            w(g, "~Mnew Among(~L0, ~I1, ~I2, ");
+            w(g, "~Mnew Among(~L0, ~I1, ~I2");
             if (v->function != 0)
             {
-                w(g, "((instance : SnowballStemmer) : boolean -> (instance as ~n).");
+                w(g, ", ((instance : SnowballStemmer) : boolean -> (instance as ~n).");
                 write_varname(g, v->function);
-                w(g, "()), ~n.methodObject)~S0~N");
+                w(g, "()), ~n.methodObject");
             }
-            else
-            {
-                w(g, "null, null)~S0~N");
-            }
+            w(g, ")~S0~N");
             v++;
         }
     }

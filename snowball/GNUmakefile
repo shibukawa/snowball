@@ -3,7 +3,7 @@
 c_src_dir = src_c
 java_src_main_dir = java/org/tartarus/snowball
 java_src_dir = $(java_src_main_dir)/ext
-python_src_dir = python
+python_src_dir = stemming
 jsx_src_dir = lib
 jsx_runtime_dir = jsx
 jsx_sample_dir = sample
@@ -53,9 +53,11 @@ JSX_RUNTIME_SOURCES = jsx/among.jsx \
 JSX_SAMPLE_SOURCES = jsx/testapp.jsx \
 		     jsx/stemwords.jsx
 
-PYTHON_RUNTIME_SOURCES = python/among.py \
-		      	 python/snowball_stemmer.py \
-		         python/testapp.py
+PYTHON_RUNTIME_SOURCES = python/stemming/__init__.py \
+		         python/stemming/stemmer.py
+
+JSX_SAMPLE_SOURCES = python/testapp.py \
+		     python/stemwords.py
 
 LIBSTEMMER_SOURCES = libstemmer/libstemmer.c
 LIBSTEMMER_UTF8_SOURCES = libstemmer/libstemmer_utf8.c
@@ -65,6 +67,8 @@ LIBSTEMMER_EXTRA = libstemmer/modules.txt libstemmer/modules_utf8.txt libstemmer
 STEMWORDS_SOURCES = examples/stemwords.c
 
 JSX_STEMWORDS_SOURCE = jsx/stemwords.jsx
+
+PY_STEMWORDS_SOURCE = python/stemwords.py
 
 ALL_ALGORITHM_FILES = $(all_algorithms:%=algorithms/%/stem*.sbl)
 C_LIB_SOURCES = $(libstemmer_algorithms:%=$(c_src_dir)/stem_UTF_8_%.c) \
@@ -185,9 +189,7 @@ $(java_src_dir)/%Stemmer.java: algorithms/%/stem_Unicode.sbl snowball
 $(python_src_dir)/%_stemmer.py: algorithms/%/stem_Unicode.sbl snowball
 	@mkdir -p $(python_src_dir)
 	@l=`echo "$<" | sed 's!\(.*\)/stem_Unicode.sbl$$!\1!;s!^.*/!!'`; \
-	o="$(python_src_dir)/$${l}_temmer"; \
-	echo "./snowball $< -py -o $${o} -eprefix $${l}_ -r ../runtime -n $${l}Stemmer"; \
-	./snowball $< -py -o $${o} -eprefix $${l}_ -r ../runtime -n $${l}Stemmer
+	o="$(python_src_dir)/$${l}_stemmer"; \
 	echo "./snowball $< -py -o $${o} -p \"SnowballStemmer\" -eprefix $${l}_ -r ../runtime -n `python -c "print('$${l}'.title())"`Stemmer"; \
 	./snowball $< -py -o $${o} -p "SnowballStemmer" -eprefix $${l}_ -r ../runtime -n `python -c "print('$${l}'.title())"`Stemmer
 
