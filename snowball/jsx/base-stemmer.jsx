@@ -1,7 +1,7 @@
 import "stemmer.jsx";
 import "among.jsx";
 
-class SnowballStemmer implements Stemmer
+class BaseStemmer implements Stemmer
 {
     // this.current string
     var current : string;
@@ -38,7 +38,7 @@ class SnowballStemmer implements Stemmer
     }
 
 
-    function copy_from (other : SnowballStemmer) : void
+    function copy_from (other : BaseStemmer) : void
     {
 	this.current          = other.current;
 	this.cursor           = other.cursor;

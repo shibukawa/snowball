@@ -1279,7 +1279,7 @@ static void generate_start_comment(struct generator * g) {
 
 static void generate_class_begin(struct generator * g) {
 
-    w(g, "import \"snowball-stemmer.jsx\";~N"
+    w(g, "import \"base-stemmer.jsx\";~N"
          "import \"among.jsx\";~N"
          "~N"
          " /**~N"

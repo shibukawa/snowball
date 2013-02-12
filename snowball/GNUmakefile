@@ -3,7 +3,7 @@
 c_src_dir = src_c
 java_src_main_dir = java/org/tartarus/snowball
 java_src_dir = $(java_src_main_dir)/ext
-python_src_dir = stemming
+python_src_dir = snowballstemmer
 jsx_src_dir = lib
 jsx_runtime_dir = jsx
 jsx_sample_dir = sample
@@ -191,21 +191,21 @@ $(python_src_dir)/%_stemmer.py: algorithms/%/stem_Unicode.sbl snowball
 	@l=`echo "$<" | sed 's!\(.*\)/stem_Unicode.sbl$$!\1!;s!^.*/!!'`; \
 	o="$(python_src_dir)/$${l}_stemmer"; \
 	echo "./snowball $< -py -o $${o} -p \"SnowballStemmer\" -eprefix $${l}_ -r ../runtime -n `python -c "print('$${l}'.title())"`Stemmer"; \
-	./snowball $< -py -o $${o} -p "SnowballStemmer" -eprefix $${l}_ -r ../runtime -n `python -c "print('$${l}'.title())"`Stemmer
+	./snowball $< -py -o $${o} -p "BaseStemmer" -eprefix $${l}_ -r ../runtime -n `python -c "print('$${l}'.title())"`Stemmer
 
 $(jsx_src_dir)/%-stemmer.jsx: algorithms/%/stem_Unicode.sbl snowball
 	@mkdir -p $(jsx_src_dir)
 	@l=`echo "$<" | sed 's!\(.*\)/stem_Unicode.sbl$$!\1!;s!^.*/!!'`; \
 	o="$(jsx_src_dir)/$${l}-stemmer"; \
 	echo "./snowball $< -jsx -o $${o} -p \"SnowballStemmer\" -eprefix $${l}_ -r ../runtime -n `python -c "print('$${l}'.title())"`Stemmer"; \
-	./snowball $< -jsx -o $${o} -p "SnowballStemmer" -eprefix $${l}_ -r ../runtime -n `python -c "print('$${l}'.title())"`Stemmer
+	./snowball $< -jsx -o $${o} -p "BaseStemmer" -eprefix $${l}_ -r ../runtime -n `python -c "print('$${l}'.title())"`Stemmer
 
 splint: snowball.splint
 snowball.splint: $(COMPILER_SOURCES)
 	splint $^ >$@ -weak
 
 # Make a full source distribution
-dist: dist_snowball dist_libstemmer_c dist_libstemmer_java dist_libstemmer_jsx
+dist: dist_snowball dist_libstemmer_c dist_libstemmer_java dist_libstemmer_jsx dist_libstemmer_python
 
 # Make a distribution of all the sources involved in snowball
 dist_snowball: $(COMPILER_SOURCES) $(COMPILER_HEADERS) \

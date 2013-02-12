@@ -500,7 +500,7 @@ static void generate_backwards(struct generator * g, struct node * p) {
     writef(g,"~Mself.limit_backward = self.cursor~N"
              "~Mself.cursor = self.limit~N", p);
     generate(g, p->left);
-    w(g, "~Mself.cursor = self.limit_backward");
+    w(g, "~Mself.cursor = self.limit_backward~N");
 }
 
 
@@ -514,7 +514,6 @@ static void generate_not(struct generator * g, struct node * p) {
 
     write_comment(g, p);
     if (keep_c) {
-        write_block_start(g);
         write_savecursor(g, p, savevar);
     }
 
@@ -535,7 +534,6 @@ static void generate_not(struct generator * g, struct node * p) {
     g->unreachable = false;
 
     if (keep_c) write_restorecursor(g, p, savevar);
-    if (keep_c) write_block_end(g);
     str_delete(savevar);
 }
 
@@ -708,7 +706,7 @@ static void generate_repeat(struct generator * g, struct node * p, struct str * 
     if (!g->unreachable) {
         if (loopvar != 0) {
             g->B[0] = str_data(loopvar);
-            w(g, "~M~B0--~N");
+            w(g, "~M~B0 -= 1~N");
         }
 
         g->I[0] = replab;
@@ -732,7 +730,6 @@ static void generate_atleast(struct generator * g, struct node * p) {
 
     struct str * loopvar = vars_newname(g);
     write_comment(g, p);
-    w(g, "~+");
     g->B[0] = str_data(loopvar);
     w(g, "~M~B0 = ");
     generate_AE(g, p->AE);
@@ -749,7 +746,6 @@ static void generate_atleast(struct generator * g, struct node * p) {
     }
     g->B[0] = str_data(loopvar);
     write_failure_if(g, "~B0 > 0", p);
-    w(g, "~-");
     str_delete(loopvar);
 }
 
@@ -957,19 +953,18 @@ static void generate_dollar(struct generator * g, struct node * p) {
 
     str_assign(g->failure_str, "self.copy_from(self, ");
     str_append(g->failure_str, savevar);
-    str_append_string(g->failure_str, "):");
+    str_append_string(g->failure_str, ")");
     g->B[0] = str_data(savevar);
-    writef(g, "~{~M~n ~B0 = self~N"
-             "~Mself.current = self.~V0.toString()~N"
-             "~Mself.cursor = 0~N"
-             "~Mself.limit = (self.current.length)~N", p);
+    writef(g, "~M~n ~B0 = self~N"
+              "~Mself.current = self.~V0.toString()~N"
+              "~Mself.cursor = 0~N"
+              "~Mself.limit = (self.current.length)~N", p);
     generate(g, p->left);
     if (!g->unreachable) {
         write_margin(g);
         write_str(g, g->failure_str);
         write_newline(g);
     }
-    w(g, "~}");
     str_delete(savevar);
 }
 
@@ -1229,7 +1224,7 @@ static void generate_start_comment(struct generator * g) {
 
 static void generate_class_begin(struct generator * g) {
 
-    w(g, "from stemmer import ");
+    w(g, "from basestemmer import ");
     w(g, g->options->parent_class_name);
     w(g, "~N"
          "from among import Among~N"
