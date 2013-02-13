@@ -48,16 +48,17 @@ JAVARUNTIME_SOURCES = java/org/tartarus/snowball/Among.java \
 PYTHON_RUNTIME_SOURCES = python_runtime/dummy.py
 
 JSX_RUNTIME_SOURCES = jsx/among.jsx \
-		      jsx/snowball-stemmer.jsx \
+		      jsx/base-stemmer.jsx \
 		      jsx/stemmer.jsx
 JSX_SAMPLE_SOURCES = jsx/testapp.jsx \
 		     jsx/stemwords.jsx
 
-PYTHON_RUNTIME_SOURCES = python/stemming/__init__.py \
-		         python/stemming/stemmer.py
+PYTHON_RUNTIME_SOURCES = python/snowballstemmer/__init__.py \
+		         python/snowballstemmer/basestemmer.py \
+		         python/snowballstemmer/among.py
 
-JSX_SAMPLE_SOURCES = python/testapp.py \
-		     python/stemwords.py
+PYTHON_SAMPLE_SOURCES = python/testapp.py \
+		        python/stemwords.py
 
 LIBSTEMMER_SOURCES = libstemmer/libstemmer.c
 LIBSTEMMER_UTF8_SOURCES = libstemmer/libstemmer_utf8.c

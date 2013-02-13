@@ -1296,7 +1296,6 @@ static void generate_class_begin(struct generator * g) {
 }
 
 static void generate_class_end(struct generator * g) {
-
     w(g, "~N}");
     w(g, "~N~N");
 }
@@ -1344,7 +1343,7 @@ static void generate_among_table(struct generator * g, struct among * x) {
             w(g, "~Mnew Among(~L0, ~I1, ~I2");
             if (v->function != 0)
             {
-                w(g, ", ((instance : SnowballStemmer) : boolean -> (instance as ~n).");
+                w(g, ", ((instance : BaseStemmer) : boolean -> (instance as ~n).");
                 write_varname(g, v->function);
                 w(g, "()), ~n.methodObject");
             }
