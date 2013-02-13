@@ -69,8 +69,6 @@ STEMWORDS_SOURCES = examples/stemwords.c
 
 JSX_STEMWORDS_SOURCE = jsx/stemwords.jsx
 
-PY_STEMWORDS_SOURCE = python/stemwords.py
-
 ALL_ALGORITHM_FILES = $(all_algorithms:%=algorithms/%/stem*.sbl)
 C_LIB_SOURCES = $(libstemmer_algorithms:%=$(c_src_dir)/stem_UTF_8_%.c) \
 		$(KOI8_R_algorithms:%=$(c_src_dir)/stem_KOI8_R_%.c) \
@@ -298,17 +296,19 @@ dist_libstemmer_java: $(RUNTIME_SOURCES) $(RUNTIME_HEADERS) \
 	rm -rf $${dest}
 
 dist_libstemmer_python: $(PYTHON_SOURCES)
-	destname=pystemmer; \
+	destname=snowballstemmer; \
 	dest=dist/$${destname}; \
 	rm -rf $${dest} && \
 	rm -f $${dest}.tgz && \
 	mkdir -p $${dest} && \
 	mkdir -p $${dest}/$(python_src_dir) && \
 	cp -a $(PYTHON_SOURCES) $${dest}/$(python_src_dir) && \
+	cp -a $(PYTHON_SAMPLE_SOURCES) $${dest}/$(python_sample_dir) && \
 	cp -a $(PYTHON_RUNTIME_SOURCES) $${dest}/$(python_src_dir) && \
 	(cd $${dest} && \
 	 echo "README" >> MANIFEST && \
-	 ls $(python_src_dir)/*.py >> MANIFEST) && \
+	 ls $(python_src_dir)/*.py >> MANIFEST && \
+	 ls $(python_sample_dir)/*.py >> MANIFEST) && \
 	(cd dist && tar zcf $${destname}.tgz $${destname})
 
 dist_libstemmer_jsx: $(JSX_SOURCES)

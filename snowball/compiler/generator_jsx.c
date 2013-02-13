@@ -142,6 +142,7 @@ static void write_declare(struct generator * g,
 static void write_comment(struct generator * g, struct node * p) {
 
     write_margin(g);
+    //write_string(g, "log \"");
     write_string(g, "// ");
     write_string(g, (char *) name_of_token(p->type));
     if (p->name != 0) {
@@ -150,6 +151,7 @@ static void write_comment(struct generator * g, struct node * p) {
     }
     write_string(g, ", line ");
     write_int(g, p->line_number);
+    //write_string(g, "\";");
     write_newline(g);
 }
 
