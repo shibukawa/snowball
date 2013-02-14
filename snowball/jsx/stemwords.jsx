@@ -60,7 +60,7 @@ class _Main
                 {
                 case "-h":
                     show_help = true;
-                    args.length;
+                    args.length = 0;
                     break;
                 case "-p":
                     pretty = 1;
@@ -72,7 +72,6 @@ class _Main
                     if (args.length == 0)
                     {
                         show_help = true;
-                        args.length;
                         break;
                     }
                     language = args.shift();
@@ -81,7 +80,6 @@ class _Main
                     if (args.length == 0)
                     {
                         show_help = true;
-                        args.length;
                         break;
                     }
                     input = args.shift();
@@ -90,7 +88,6 @@ class _Main
                     if (args.length == 0)
                     {
                         show_help = true;
-                        args.length;
                         break;
                     }
                     output = args.shift();
@@ -99,7 +96,6 @@ class _Main
                     if (args.length == 0)
                     {
                         show_help = true;
-                        args.length;
                         break;
                     }
                     encoding = args.shift();
