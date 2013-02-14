@@ -7,6 +7,7 @@ python_output_dir = python_out
 python_runtime_dir = snowballstemmer
 python_sample_dir = sample
 jsx_output_dir = jsx_out
+jsx_runtime_src_dir = jsx
 jsx_runtime_dir = lib
 jsx_sample_dir = sample
 
@@ -115,12 +116,14 @@ clean:
 	      $(C_LIB_SOURCES) $(C_LIB_HEADERS) $(C_LIB_OBJECTS) \
 	      $(C_OTHER_SOURCES) $(C_OTHER_HEADERS) $(C_OTHER_OBJECTS) \
 	      $(JAVA_SOURCES) $(JAVA_CLASSES) $(JAVA_RUNTIME_CLASSES) \
+	      $(PYTHON_SOURCES) \
 	      $(JSX_SOURCES) jsx_stemwords \
               libstemmer/mkinc.mak libstemmer/mkinc_utf8.mak \
               libstemmer/libstemmer.c libstemmer/libstemmer_utf8.c
 	rm -rf dist
 	rmdir $(c_src_dir) || true
-	rmdir $(jsx_src_dir) || true
+	rmdir $(python_output_dir) || true
+	rmdir $(jsx_output_dir) || true
 
 snowball: $(COMPILER_OBJECTS)
 	$(CC) -o $@ $^
@@ -148,7 +151,7 @@ stemwords: $(STEMWORDS_OBJECTS) libstemmer.o
 	$(CC) -o $@ $^
 
 jsx_stemwords: $(JSX_STEMWORDS_SOURCE) $(JSX_SOURCES)
-	jsx --executable node --output $@ --add-search-path $(jsx_src_dir) --add-search-path $(jsx_runtime_dir) $(JSX_STEMWORDS_SOURCE)
+	jsx --executable node --output $@ --add-search-path $(jsx_output_dir) --add-search-path $(jsx_runtime_src_dir) $(JSX_STEMWORDS_SOURCE)
 
 algorithms/%/stem_Unicode.sbl: algorithms/%/stem_ISO_8859_1.sbl
 	cp $^ $@
@@ -324,11 +327,11 @@ dist_libstemmer_jsx: $(JSX_SOURCES)
 	rm -rf $${dest} && \
 	rm -f $${dest}.tgz && \
 	mkdir -p $${dest} && \
-	mkdir -p $${dest}/$(jsx_src_dir) && \
+	mkdir -p $${dest}/$(jsx_runtime_dir) && \
 	mkdir -p $${dest}/$(jsx_sample_dir) && \
 	cp -a doc/libstemmer_jsx_README.rst $${dest}/README.rst && \
 	cp -a doc/libstemmer_jsx_LICENSE.rst $${dest}/LICENSE.rst && \
-	cp -a $(JSX_RUNTIME_SOURCES) $${dest}/$(jsx_src_dir) && \
+	cp -a $(JSX_RUNTIME_SOURCES) $${dest}/$(jsx_runtime_dir) && \
 	cp -a $(JSX_SAMPLE_SOURCES) $${dest}/$(jsx_sample_dir) && \
 	cp -a $(JSX_SOURCES) $${dest}/$(jsx_runtime_dir) && \
 	(cd $${dest} && \
@@ -394,8 +397,19 @@ check_jsx_%: ../data/% jsx_stemwords
 	@diff -u $</output.txt tmp.txt
 	@if [ -e $</diffs.txt ] ; \
 	then \
-	  ./jsx_stemwords -c utf8 -l `echo $<|sed 's!.*/!!'` -i $</voc.txt -o tmp.txt -p2 && \
-	  diff -u $</diffs.txt tmp.txt; \
+	  ./jsx_stemwords -c utf8 -l `echo $<|sed 's!.*/!!'` -i $</voc.txt -o tmp.txt && \
+	  diff -u $</output.txt tmp.txt | grep "+" | wc -l; \
 	fi
 	@rm tmp.txt
 
+check_python: $(libstemmer_algorithms:%=check_python_%)
+	@echo "Checking output of `echo $<|sed 's!.*/!!'` stemmer with UTF-8"
+	@./jsx_stemwords -c utf8 -l `echo $<|sed 's!.*/!!'` -i $</voc.txt -o tmp.txt
+	@diff -u $</output.txt tmp.txt
+	@if [ -e $</diffs.txt ] ; \
+	then \
+	  echo $<|sed 's!.*/!!' && \
+	  ./jsx_stemwords -c utf8 -l `echo $<|sed 's!.*/!!'` -i $</voc.txt -o tmp.txt && \
+	  diff -u $</output.txt tmp.txt | grep "+" | wc -l; \
+	fi
+	@rm tmp.txt
