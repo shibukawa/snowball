@@ -3,9 +3,11 @@
 c_src_dir = src_c
 java_src_main_dir = java/org/tartarus/snowball
 java_src_dir = $(java_src_main_dir)/ext
-python_src_dir = snowballstemmer
-jsx_src_dir = lib
-jsx_runtime_dir = jsx
+python_output_dir = python_out
+python_runtime_dir = snowballstemmer
+python_sample_dir = sample
+jsx_output_dir = jsx_out
+jsx_runtime_dir = lib
 jsx_sample_dir = sample
 
 libstemmer_algorithms = danish dutch english finnish french german hungarian \
@@ -31,12 +33,14 @@ COMPILER_SOURCES = compiler/space.c \
 		   compiler/generator_python.c \
 		   compiler/generator_jsx.c \
 		   compiler/driver.c
+
 COMPILER_HEADERS = compiler/header.h \
 		   compiler/syswords.h \
 		   compiler/syswords2.h
 
 RUNTIME_SOURCES  = runtime/api.c \
 		   runtime/utilities.c
+
 RUNTIME_HEADERS  = runtime/api.h \
 		   runtime/header.h
 
@@ -45,11 +49,10 @@ JAVARUNTIME_SOURCES = java/org/tartarus/snowball/Among.java \
 		      java/org/tartarus/snowball/SnowballStemmer.java \
 		      java/org/tartarus/snowball/TestApp.java
 
-PYTHON_RUNTIME_SOURCES = python_runtime/dummy.py
-
 JSX_RUNTIME_SOURCES = jsx/among.jsx \
 		      jsx/base-stemmer.jsx \
 		      jsx/stemmer.jsx
+
 JSX_SAMPLE_SOURCES = jsx/testapp.jsx \
 		     jsx/stemwords.jsx
 
@@ -59,6 +62,9 @@ PYTHON_RUNTIME_SOURCES = python/snowballstemmer/__init__.py \
 
 PYTHON_SAMPLE_SOURCES = python/testapp.py \
 		        python/stemwords.py
+
+PYTHON_PACKAGE_FILES = python/MANIFEST.in \
+		       python/setup.py
 
 LIBSTEMMER_SOURCES = libstemmer/libstemmer.c
 LIBSTEMMER_UTF8_SOURCES = libstemmer/libstemmer_utf8.c
@@ -81,8 +87,8 @@ C_LIB_HEADERS = $(libstemmer_algorithms:%=$(c_src_dir)/stem_UTF_8_%.h) \
 C_OTHER_SOURCES = $(other_algorithms:%=$(c_src_dir)/stem_UTF_8_%.c)
 C_OTHER_HEADERS = $(other_algorithms:%=$(c_src_dir)/stem_UTF_8_%.h)
 JAVA_SOURCES = $(libstemmer_algorithms:%=$(java_src_dir)/%Stemmer.java)
-PYTHON_SOURCES = $(libstemmer_algorithms:%=$(python_src_dir)/%_stemmer.py)
-JSX_SOURCES = $(libstemmer_algorithms:%=$(jsx_src_dir)/%-stemmer.jsx)
+PYTHON_SOURCES = $(libstemmer_algorithms:%=$(python_output_dir)/%_stemmer.py)
+JSX_SOURCES = $(libstemmer_algorithms:%=$(jsx_output_dir)/%-stemmer.jsx)
 
 COMPILER_OBJECTS=$(COMPILER_SOURCES:.c=.o)
 RUNTIME_OBJECTS=$(RUNTIME_SOURCES:.c=.o)
@@ -185,17 +191,17 @@ $(java_src_dir)/%Stemmer.java: algorithms/%/stem_Unicode.sbl snowball
 	echo "./snowball $< -j -o $${o} -p \"org.tartarus.snowball.SnowballStemmer\" -eprefix $${l}_ -r ../runtime -n $${l}Stemmer"; \
 	./snowball $< -j -o $${o} -p "org.tartarus.snowball.SnowballStemmer" -eprefix $${l}_ -r ../runtime -n $${l}Stemmer
 
-$(python_src_dir)/%_stemmer.py: algorithms/%/stem_Unicode.sbl snowball
-	@mkdir -p $(python_src_dir)
+$(python_output_dir)/%_stemmer.py: algorithms/%/stem_Unicode.sbl snowball
+	@mkdir -p $(python_output_dir)
 	@l=`echo "$<" | sed 's!\(.*\)/stem_Unicode.sbl$$!\1!;s!^.*/!!'`; \
-	o="$(python_src_dir)/$${l}_stemmer"; \
+	o="$(python_output_dir)/$${l}_stemmer"; \
 	echo "./snowball $< -py -o $${o} -p \"SnowballStemmer\" -eprefix $${l}_ -r ../runtime -n `python -c "print('$${l}'.title())"`Stemmer"; \
 	./snowball $< -py -o $${o} -p "BaseStemmer" -eprefix $${l}_ -r ../runtime -n `python -c "print('$${l}'.title())"`Stemmer
 
-$(jsx_src_dir)/%-stemmer.jsx: algorithms/%/stem_Unicode.sbl snowball
-	@mkdir -p $(jsx_src_dir)
+$(jsx_output_dir)/%-stemmer.jsx: algorithms/%/stem_Unicode.sbl snowball
+	@mkdir -p $(jsx_output_dir)
 	@l=`echo "$<" | sed 's!\(.*\)/stem_Unicode.sbl$$!\1!;s!^.*/!!'`; \
-	o="$(jsx_src_dir)/$${l}-stemmer"; \
+	o="$(jsx_output_dir)/$${l}-stemmer"; \
 	echo "./snowball $< -jsx -o $${o} -p \"SnowballStemmer\" -eprefix $${l}_ -r ../runtime -n `python -c "print('$${l}'.title())"`Stemmer"; \
 	./snowball $< -jsx -o $${o} -p "BaseStemmer" -eprefix $${l}_ -r ../runtime -n `python -c "print('$${l}'.title())"`Stemmer
 
@@ -300,16 +306,17 @@ dist_libstemmer_python: $(PYTHON_SOURCES)
 	dest=dist/$${destname}; \
 	rm -rf $${dest} && \
 	rm -f $${dest}.tgz && \
+	echo "a1" && \
 	mkdir -p $${dest} && \
-	mkdir -p $${dest}/$(python_src_dir) && \
-	cp -a $(PYTHON_SOURCES) $${dest}/$(python_src_dir) && \
-	cp -a $(PYTHON_SAMPLE_SOURCES) $${dest}/$(python_sample_dir) && \
-	cp -a $(PYTHON_RUNTIME_SOURCES) $${dest}/$(python_src_dir) && \
-	(cd $${dest} && \
-	 echo "README" >> MANIFEST && \
-	 ls $(python_src_dir)/*.py >> MANIFEST && \
-	 ls $(python_sample_dir)/*.py >> MANIFEST) && \
-	(cd dist && tar zcf $${destname}.tgz $${destname})
+	mkdir -p $${dest}/src/$(python_runtime_dir) && \
+	mkdir -p $${dest}/src/$(python_sample_dir) && \
+	cp doc/libstemmer_python_README.rst $${dest}/README.rst && \
+	cp doc/libstemmer_python_LICENSE.rst $${dest}/LICENSE.rst && \
+	cp -a $(PYTHON_SOURCES) $${dest}/src/$(python_runtime_dir) && \
+	cp -a $(PYTHON_SAMPLE_SOURCES) $${dest}/src/$(python_sample_dir) && \
+	cp -a $(PYTHON_RUNTIME_SOURCES) $${dest}/src/$(python_runtime_dir) && \
+	cp -a $(PYTHON_PACKAGE_FILES) $${dest} && \
+	(cd $${dest} && python setup.py sdist && cp dist/*.tar.gz ..)
 
 dist_libstemmer_jsx: $(JSX_SOURCES)
 	destname=jsxstemmer; \
@@ -323,11 +330,11 @@ dist_libstemmer_jsx: $(JSX_SOURCES)
 	cp -a doc/libstemmer_jsx_LICENSE.rst $${dest}/LICENSE.rst && \
 	cp -a $(JSX_RUNTIME_SOURCES) $${dest}/$(jsx_src_dir) && \
 	cp -a $(JSX_SAMPLE_SOURCES) $${dest}/$(jsx_sample_dir) && \
-	cp -a $(JSX_SOURCES) $${dest}/$(jsx_src_dir) && \
+	cp -a $(JSX_SOURCES) $${dest}/$(jsx_runtime_dir) && \
 	(cd $${dest} && \
 	 echo "README.rst" >> MANIFEST && \
 	 echo "LICENSE.rst" >> MANIFEST && \
-	 ls $(jsx_src_dir)/*.jsx >> MANIFEST && \
+	 ls $(jsx_runtime_dir)/*.jsx >> MANIFEST && \
 	 ls $(jsx_sample_dir)/*.jsx >> MANIFEST) && \
 	(cd dist && tar zcf $${destname}.tgz $${destname}) && \
 	rm -rf $${dest}
