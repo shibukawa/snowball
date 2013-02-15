@@ -184,7 +184,7 @@ class BaseStemmer(object):
                 if w.method is None:
                     return w.result
                 method = getattr(self.methodObject, w.method)
-		res = call(method)
+		res = method()
 		self.cursor = c + w.s_size
                 if res:
                     return w.result

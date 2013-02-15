@@ -259,6 +259,7 @@ struct generator {
     struct str * outbuf;       /* temporary str to store output */
     struct str * declarations; /* str storing variable declarations */
     int next_label;
+    int max_label;
     int margin;
 
     const char * failure_string;     /* String to output in case of a failure. */

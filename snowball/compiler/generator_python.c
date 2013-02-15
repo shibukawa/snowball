@@ -17,7 +17,9 @@ enum special_labels {
 
 static int new_label(struct generator * g) {
 
-    return g->next_label++;
+    int next_label = g->next_label++;
+    g->max_label = (next_label > g->max_label) ? next_label : g->max_label;
+    return next_label;
 }
 
 static struct str * vars_newname(struct generator * g) {
@@ -186,9 +188,8 @@ static void write_inc_cursor(struct generator * g, struct node * p) {
     write_newline(g);
 }
 
-static void wsetlab_begin(struct generator * g, int n) {
-    g->I[0] = n;
-    w(g, "~Mclass lab~I0(BaseException): pass~N");
+static void wsetlab_begin(struct generator * g) {
+
     w(g, "~Mtry:~N~+");
 }
 
@@ -209,20 +210,16 @@ static void write_failure(struct generator * g) {
         write_str(g, g->failure_str);
         write_newline(g);
     }
-    write_margin(g);
     switch (g->failure_label)
     {
         case x_return:
-            write_string(g, "return False");
+            w(g, "~Mreturn False~N");
             g->unreachable = true;
             break;
         default:
-            write_string(g, "raise lab");
-            write_int(g, g->failure_label);
-            write_string(g, "()");
-            //g->unreachable = true;
+            g->I[0] = g->failure_label;
+            w(g, "~Mraise lab~I0()~N");
     }
-    write_newline(g);
 }
 
 static void write_failure_if(struct generator * g, char * s, struct node * p) {
@@ -463,7 +460,7 @@ static void generate_or(struct generator * g, struct node * p) {
 
     int out_lab = new_label(g);
     write_comment(g, p);
-    wsetlab_begin(g, out_lab);
+    wsetlab_begin(g);
 
     if (keep_c) write_savecursor(g, p, savevar);
 
@@ -479,7 +476,7 @@ static void generate_or(struct generator * g, struct node * p) {
     while (p->right != 0) {
         g->failure_label = new_label(g);
         int label = g->failure_label;
-        wsetlab_begin(g, label);
+        wsetlab_begin(g);
         generate(g, p);
         if (!g->unreachable) wgotol(g, out_lab);
         wsetlab_end(g, label);
@@ -523,8 +520,8 @@ static void generate_not(struct generator * g, struct node * p) {
     g->failure_label = new_label(g);
     int label = g->failure_label;
     str_clear(g->failure_str);
-    
-    wsetlab_begin(g, label);
+
+    wsetlab_begin(g);
 
     generate(g, p->left);
 
@@ -555,7 +552,7 @@ static void generate_try(struct generator * g, struct node * p) {
 
     if (keep_c) restore_string(p, g->failure_str, savevar);
 
-    wsetlab_begin(g, label);
+    wsetlab_begin(g);
     generate(g, p->left);
     wsetlab_end(g, label);
     g->unreachable = false;
@@ -618,7 +615,7 @@ static void generate_do(struct generator * g, struct node * p) {
     int label = g->failure_label;
     str_clear(g->failure_str);
 
-    wsetlab_begin(g, label);
+    wsetlab_begin(g);
     generate(g, p->left);
     wsetlab_end(g, label);
     g->unreachable = false;
@@ -639,14 +636,13 @@ static void generate_GO(struct generator * g, struct node * p, int style) {
     int golab = new_label(g);
     g->I[0] = golab;
     write_comment(g, p);
-    w(g, "~Mclass golab~I0(BaseException): pass~N");
     w(g, "~Mtry:~N~+"
              "~Mwhile True:~N~+");
     if (keep_c) write_savecursor(g, p, savevar);
 
     g->failure_label = new_label(g);
     int label = g->failure_label;
-    wsetlab_begin(g, label);
+    wsetlab_begin(g);
     generate(g, p->left);
 
     if (g->unreachable) {
@@ -657,7 +653,7 @@ static void generate_GO(struct generator * g, struct node * p, int style) {
         /* include for goto; omit for gopast */
         if (style == 1) write_restorecursor(g, p, savevar);
         g->I[0] = golab;
-        w(g, "~Mraise golab~I0()~N");
+        w(g, "~Mraise lab~I0()~N");
     }
     g->unreachable = false;
     wsetlab_end(g, label);
@@ -671,7 +667,7 @@ static void generate_GO(struct generator * g, struct node * p, int style) {
     write_inc_cursor(g, p);
     w(g, "~-~-");
     g->I[0] = golab;
-    w(g, "~Mexcept golab~I0: pass~N");
+    w(g, "~Mexcept lab~I0: pass~N");
     str_delete(savevar);
     g->unreachable = end_unreachable;
 }
@@ -698,20 +694,18 @@ static void generate_repeat(struct generator * g, struct node * p, struct str * 
 
     struct str * savevar = vars_newname(g);
     int keep_c = repeat_restore(g, p->left);
-    int replab = new_label(g);
-    g->I[0] = replab;
+    int rep_break_lab = new_label(g);
+    int rep_continue_lab = new_label(g);
     write_comment(g, p);
-    writef(g, "~Mclass replab~I0_break(BaseException): pass~N"
-              "~Mtry:~N~+"
+    writef(g, "~Mtry:~N~+"
                   "~Mwhile True:~N~+"
-                      "~Mclass replab~I0_continue(BaseException): pass~N"
                       "~Mtry:~N~+", p);
     if (keep_c) write_savecursor(g, p, savevar);
 
     g->failure_label = new_label(g);
     int label = g->failure_label;
     str_clear(g->failure_str);
-    wsetlab_begin(g, label);
+    wsetlab_begin(g);
     generate(g, p->left);
 
     if (!g->unreachable) {
@@ -720,8 +714,8 @@ static void generate_repeat(struct generator * g, struct node * p, struct str * 
             w(g, "~M~B0 -= 1~N");
         }
 
-        g->I[0] = replab;
-        w(g, "~Mraise replab~I0_continue()~N");
+        g->I[0] = rep_continue_lab;
+        w(g, "~Mraise lab~I0()~N");
     }
 
     wsetlab_end(g, label);
@@ -729,11 +723,12 @@ static void generate_repeat(struct generator * g, struct node * p, struct str * 
 
     if (keep_c) write_restorecursor(g, p, savevar);
 
-    g->I[0] = replab;
-    w(g, "~Mraise replab~I0_break()~N~}"
-         "~Mexcept replab~I0_continue: pass~N"
+    g->I[0] = rep_continue_lab;
+    g->I[1] = rep_break_lab;
+    w(g, "~Mraise lab~I1()~N~}"
+         "~Mexcept lab~I0: pass~N"
          "~}~}"
-         "~Mexcept replab~I0_break: pass~N");
+         "~Mexcept lab~I1: pass~N");
     str_delete(savevar);
 }
 
@@ -1070,7 +1065,6 @@ static void generate_define(struct generator * g, struct node * p) {
         }
     }
     struct str * saved_output = g->outbuf;
-    struct str * saved_declarations = g->declarations;
 
     g->V[0] = p->name;
     if (find == 1)
@@ -1082,7 +1076,6 @@ static void generate_define(struct generator * g, struct node * p) {
         w(g, "~N~Mdef ~V0(self):~+~N");
     }
     g->outbuf = str_new();
-    g->declarations = str_new();
 
     g->next_label = 0;
     g->var_number = 0;
@@ -1094,11 +1087,8 @@ static void generate_define(struct generator * g, struct node * p) {
     if (!g->unreachable) w(g, "~Mreturn True~N");
     w(g, "~-");
 
-    str_append(saved_output, g->declarations);
     str_append(saved_output, g->outbuf);
-    str_delete(g->declarations);
     str_delete(g->outbuf);
-    g->declarations = saved_declarations;
     g->outbuf = saved_output;
 }
 
@@ -1309,7 +1299,7 @@ static void generate_among_table(struct generator * g, struct among * x) {
             g->L[0] = v->b;
             g->S[0] = i < x->literalstring_count - 1 ? "," : "";
 
-            w(g, "~MAmong(~L0, ~I1, ~I2");
+            w(g, "~MAmong(u~L0, ~I1, ~I2");
             if (v->function != 0)
             {
                 w(g, ", \"");
@@ -1422,6 +1412,15 @@ static void generate_methods(struct generator * g) {
     }
 }
 
+static void generate_label_classes(struct generator * g)
+{
+    for (int i = 0; i <= g->max_label; i++)
+    {
+        g->I[0] = i;
+        w(g, "class lab~I0(BaseException): pass~N");
+    }
+}
+
 extern void generate_program_python(struct generator * g) {
 
     g->outbuf = str_new();
@@ -1440,6 +1439,8 @@ extern void generate_program_python(struct generator * g) {
 
     generate_class_end(g);
 
+    generate_label_classes(g);
+
     output_str(g->options->output_python, g->outbuf);
     str_delete(g->failure_str);
     str_delete(g->outbuf);
@@ -1453,6 +1454,7 @@ extern struct generator * create_generator_python(struct analyser * a, struct op
     g->margin = 0;
     g->debug_count = 0;
     g->unreachable = false;
+    g->max_label = 0;
     return g;
 }
 
