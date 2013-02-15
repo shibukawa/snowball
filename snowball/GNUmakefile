@@ -76,6 +76,8 @@ STEMWORDS_SOURCES = examples/stemwords.c
 
 JSX_STEMWORDS_SOURCE = jsx/stemwords.jsx
 
+PYTHON_STEMWORDS_SOURCE = python/stemwords.py
+
 ALL_ALGORITHM_FILES = $(all_algorithms:%=algorithms/%/stem*.sbl)
 C_LIB_SOURCES = $(libstemmer_algorithms:%=$(c_src_dir)/stem_UTF_8_%.c) \
 		$(KOI8_R_algorithms:%=$(c_src_dir)/stem_KOI8_R_%.c) \
@@ -395,21 +397,21 @@ check_jsx_%: ../data/% jsx_stemwords
 	@echo "Checking output of `echo $<|sed 's!.*/!!'` stemmer with UTF-8"
 	@./jsx_stemwords -c utf8 -l `echo $<|sed 's!.*/!!'` -i $</voc.txt -o tmp.txt
 	@diff -u $</output.txt tmp.txt
-	@if [ -e $</diffs.txt ] ; \
-	then \
-	  ./jsx_stemwords -c utf8 -l `echo $<|sed 's!.*/!!'` -i $</voc.txt -o tmp.txt && \
-	  diff -u $</output.txt tmp.txt | grep "+" | wc -l; \
-	fi
 	@rm tmp.txt
 
-check_python: $(libstemmer_algorithms:%=check_python_%)
+check_python: check_python_stemwords $(libstemmer_algorithms:%=check_python_%)
+
+check_python_%: ../data/%
 	@echo "Checking output of `echo $<|sed 's!.*/!!'` stemmer with UTF-8"
-	@./jsx_stemwords -c utf8 -l `echo $<|sed 's!.*/!!'` -i $</voc.txt -o tmp.txt
-	@diff -u $</output.txt tmp.txt
-	@if [ -e $</diffs.txt ] ; \
-	then \
-	  echo $<|sed 's!.*/!!' && \
-	  ./jsx_stemwords -c utf8 -l `echo $<|sed 's!.*/!!'` -i $</voc.txt -o tmp.txt && \
-	  diff -u $</output.txt tmp.txt | grep "+" | wc -l; \
-	fi
-	@rm tmp.txt
+	(cd python_check && \
+	python stemwords.py -c utf8 -l `echo $<|sed 's!.*/!!'` -i ../$</voc.txt -o tmp.txt && \
+	diff -u ../$</output.txt tmp.txt && \
+	rm tmp.txt)
+
+check_python_stemwords: $(PYTHON_STEMWORDS_SOURCE) $(PYTHON_SOURCES)
+	mkdir -p python_check && \
+	mkdir -p python_check/snowballstemmer && \
+	cp -a $(PYTHON_RUNTIME_SOURCES) python_check/snowballstemmer && \
+	cp -a $(PYTHON_SOURCES) python_check/snowballstemmer && \
+	cp -a $(PYTHON_STEMWORDS_SOURCE) python_check/
+

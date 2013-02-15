@@ -108,7 +108,7 @@ static void write_hex(struct generator * g, int ch) {
 static void write_literal_string(struct generator * g, symbol * p) {
 
     int i;
-    write_string(g, "\"");
+    write_string(g, "u\"");
     for (i = 0; i < SIZE(p); i++) {
         int ch = p[i];
         if (32 <= ch && ch <= 127) {
@@ -1247,10 +1247,10 @@ static void generate_start_comment(struct generator * g) {
 
 static void generate_class_begin(struct generator * g) {
 
-    w(g, "from basestemmer import ");
+    w(g, "from .basestemmer import ");
     w(g, g->options->parent_class_name);
     w(g, "~N"
-         "from among import Among~N"
+         "from .among import Among~N"
          "~N"
          "~N"
          "class ~n(");
@@ -1262,11 +1262,6 @@ static void generate_class_begin(struct generator * g) {
          "~M'''~N"
          "~MserialVersionUID = 1~N"
          "~N");
-}
-
-static void generate_class_end(struct generator * g) {
-    w(g, "~N"
-         "~n.methodObject = ~n()~N");
 }
 
 static void generate_equals(struct generator * g) {
@@ -1299,7 +1294,7 @@ static void generate_among_table(struct generator * g, struct among * x) {
             g->L[0] = v->b;
             g->S[0] = i < x->literalstring_count - 1 ? "," : "";
 
-            w(g, "~MAmong(u~L0, ~I1, ~I2");
+            w(g, "~MAmong(~L0, ~I1, ~I2");
             if (v->function != 0)
             {
                 w(g, ", \"");
@@ -1436,8 +1431,6 @@ extern void generate_program_python(struct generator * g) {
     generate_copyfrom(g);
     generate_methods(g);
     generate_equals(g);
-
-    generate_class_end(g);
 
     generate_label_classes(g);
 
