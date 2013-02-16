@@ -57,8 +57,7 @@ JSX_RUNTIME_SOURCES = jsx/among.jsx \
 JSX_SAMPLE_SOURCES = jsx/testapp.jsx \
 		     jsx/stemwords.jsx
 
-PYTHON_RUNTIME_SOURCES = python/snowballstemmer/__init__.py \
-		         python/snowballstemmer/basestemmer.py \
+PYTHON_RUNTIME_SOURCES = python/snowballstemmer/basestemmer.py \
 		         python/snowballstemmer/among.py
 
 PYTHON_SAMPLE_SOURCES = python/testapp.py \
@@ -90,7 +89,8 @@ C_LIB_HEADERS = $(libstemmer_algorithms:%=$(c_src_dir)/stem_UTF_8_%.h) \
 C_OTHER_SOURCES = $(other_algorithms:%=$(c_src_dir)/stem_UTF_8_%.c)
 C_OTHER_HEADERS = $(other_algorithms:%=$(c_src_dir)/stem_UTF_8_%.h)
 JAVA_SOURCES = $(libstemmer_algorithms:%=$(java_src_dir)/%Stemmer.java)
-PYTHON_SOURCES = $(libstemmer_algorithms:%=$(python_output_dir)/%_stemmer.py)
+PYTHON_SOURCES = $(libstemmer_algorithms:%=$(python_output_dir)/%_stemmer.py) \
+		 $(python_output_dir)/__init__.py
 JSX_SOURCES = $(libstemmer_algorithms:%=$(jsx_output_dir)/%-stemmer.jsx)
 
 COMPILER_OBJECTS=$(COMPILER_SOURCES:.c=.o)
@@ -202,6 +202,10 @@ $(python_output_dir)/%_stemmer.py: algorithms/%/stem_Unicode.sbl snowball
 	o="$(python_output_dir)/$${l}_stemmer"; \
 	echo "./snowball $< -py -o $${o} -p \"SnowballStemmer\" -eprefix $${l}_ -r ../runtime -n `python -c "print('$${l}'.title())"`Stemmer"; \
 	./snowball $< -py -o $${o} -p "BaseStemmer" -eprefix $${l}_ -r ../runtime -n `python -c "print('$${l}'.title())"`Stemmer
+
+$(python_output_dir)/__init__.py:
+	@mkdir -p $(python_output_dir)
+	python python/create_init.py $(python_output_dir)
 
 $(jsx_output_dir)/%-stemmer.jsx: algorithms/%/stem_Unicode.sbl snowball
 	@mkdir -p $(jsx_output_dir)
@@ -321,7 +325,8 @@ dist_libstemmer_python: $(PYTHON_SOURCES)
 	cp -a $(PYTHON_SAMPLE_SOURCES) $${dest}/src/$(python_sample_dir) && \
 	cp -a $(PYTHON_RUNTIME_SOURCES) $${dest}/src/$(python_runtime_dir) && \
 	cp -a $(PYTHON_PACKAGE_FILES) $${dest} && \
-	(cd $${dest} && python setup.py sdist && cp dist/*.tar.gz ..)
+	(cd $${dest} && python setup.py sdist && cp dist/*.tar.gz ..) && \
+	rm -rf $${dest}
 
 dist_libstemmer_jsx: $(JSX_SOURCES)
 	destname=jsxstemmer; \
@@ -389,7 +394,6 @@ check_koi8r_%: ../data/% stemwords
 	@iconv -fUTF8 -tKOI8R $</voc.txt|./stemwords -c KOI8_R -l `echo $<|sed 's!.*/!!'` -o tmp.txt
 	@iconv -fUTF8 -tKOI8R $</output.txt|diff -u - tmp.txt
 	@rm tmp.txt
-
 
 check_jsx: $(libstemmer_algorithms:%=check_jsx_%)
 

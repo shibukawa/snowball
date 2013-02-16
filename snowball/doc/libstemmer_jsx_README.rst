@@ -6,7 +6,11 @@ available for download from:
 
 * https://github.com/shibukawa/snowball_jsx/
 
-Original program is maintained at following place:
+JSX generator source code is available here:
+
+* https://github.com/shibukawa/snowball/
+
+  Original program is maintained at following place:
 
 * http://snowball.tartarus.org/
 
@@ -27,7 +31,7 @@ You can use each stemming modules from JSX program.
        function constructor (argv string[]) : void
        {
            var stemmer = new EnglishStemmer();
-           log stemmer.stem("We are the world");
+           log stemmer.stemWord("We are the world");
        }
    }
 
@@ -70,7 +74,7 @@ You can use this module from JavaScript. Following command converts your needed 
    window.onload = function() {
        var Stemmer require("english-stemmer.jsx").EnglishStemmer$;
        var stemmer = new Stemmer();
-       var result = stemmer.stem$S("We are the world");
+       var result = stemmer.stemWord$S("We are the world");
    };
    </script>
    </html>

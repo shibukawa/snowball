@@ -46,7 +46,7 @@ class _Main
                 continue;
             }
             var original = words[i].toLowerCase();
-            log original + " -> " + stemmer.stem(original);
+            log original + " -> " + stemmer.stemWord(original);
         }
     }
 

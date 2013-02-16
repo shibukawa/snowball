@@ -121,7 +121,7 @@ class _Main
         for (var i in lines)
         {
             var original = lines[i];
-            var stemmed = stemmer.stem(original);
+            var stemmed = stemmer.stemWord(original);
             if (result.length != 0)
             {
                 result.push('\n');
