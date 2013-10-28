@@ -1,7 +1,7 @@
 import "stemmer.jsx";
 import "among.jsx";
 
-class BaseStemmer implements Stemmer
+class BaseStemmer extends Stemmer
 {
     // this.current string
     var current : string;
@@ -12,7 +12,7 @@ class BaseStemmer implements Stemmer
     var ket : int;
     var cache : Map.<string>;
 
-    function constructor ()
+    __noexport__ function constructor ()
     {
         this.cache = {} : Map.<string>;
 	this.setCurrent("");
@@ -21,7 +21,7 @@ class BaseStemmer implements Stemmer
     /**
      * Set the this.current string.
      */
-    function setCurrent (value : string) : void
+    __noexport__ function setCurrent (value : string) : void
     {
         this.current = value;
 	this.cursor = 0;
@@ -34,13 +34,13 @@ class BaseStemmer implements Stemmer
     /**
      * Get the this.current string.
      */
-    function getCurrent () : string
+    __noexport__ function getCurrent () : string
     {
         return this.current;
     }
 
 
-    function copy_from (other : BaseStemmer) : void
+    __noexport__ function copy_from (other : BaseStemmer) : void
     {
 	this.current          = other.current;
 	this.cursor           = other.cursor;
@@ -50,7 +50,7 @@ class BaseStemmer implements Stemmer
 	this.ket              = other.ket;
     }
 
-    function in_grouping (s : int[], min : int, max : int) : boolean
+    __noexport__ function in_grouping (s : int[], min : int, max : int) : boolean
     {
 	if (this.cursor >= this.limit) return false;
 	var ch = this.current.charCodeAt(this.cursor);
@@ -61,7 +61,7 @@ class BaseStemmer implements Stemmer
 	return true;
     }
 
-    function in_grouping_b (s : int[], min : int, max : int) : boolean
+    __noexport__ function in_grouping_b (s : int[], min : int, max : int) : boolean
     {
 	if (this.cursor <= this.limit_backward) return false;
 	var ch = this.current.charCodeAt(this.cursor - 1);
@@ -72,7 +72,7 @@ class BaseStemmer implements Stemmer
 	return true;
     }
 
-    function out_grouping (s : int[], min : int, max : int) : boolean
+    __noexport__ function out_grouping (s : int[], min : int, max : int) : boolean
     {
 	if (this.cursor >= this.limit) return false;
 	var ch = this.current.charCodeAt(this.cursor);
@@ -88,7 +88,7 @@ class BaseStemmer implements Stemmer
 	return false;
     }
 
-    function out_grouping_b (s : int[], min : int, max : int) : boolean
+    __noexport__ function out_grouping_b (s : int[], min : int, max : int) : boolean
     {
 	if (this.cursor <= this.limit_backward) return false;
 	var ch = this.current.charCodeAt(this.cursor - 1);
@@ -104,7 +104,7 @@ class BaseStemmer implements Stemmer
 	return false;
     }
 
-    function in_range (min : int, max : int) : boolean
+    __noexport__ function in_range (min : int, max : int) : boolean
     {
 	if (this.cursor >= this.limit) return false;
 	var ch = this.current.charCodeAt(this.cursor);
@@ -113,7 +113,7 @@ class BaseStemmer implements Stemmer
 	return true;
     }
 
-    function in_range_b (min : int, max : int) : boolean
+    __noexport__ function in_range_b (min : int, max : int) : boolean
     {
 	if (this.cursor <= this.limit_backward) return false;
 	var ch = this.current.charCodeAt(this.cursor - 1);
@@ -122,7 +122,7 @@ class BaseStemmer implements Stemmer
 	return true;
     }
 
-    function out_range (min : int, max : int) : boolean
+    __noexport__ function out_range (min : int, max : int) : boolean
     {
 	if (this.cursor >= this.limit) return false;
 	var ch = this.current.charCodeAt(this.cursor);
@@ -131,7 +131,7 @@ class BaseStemmer implements Stemmer
 	return true;
     }
 
-    function out_range_b (min : int, max : int) : boolean
+    __noexport__ function out_range_b (min : int, max : int) : boolean
     {
 	if (this.cursor <= this.limit_backward) return false;
 	var ch = this.current.charCodeAt(this.cursor - 1);
@@ -140,7 +140,7 @@ class BaseStemmer implements Stemmer
 	return true;
     }
 
-    function eq_s (s_size : int, s : string) : boolean
+    __noexport__ function eq_s (s_size : int, s : string) : boolean
     {
 	if (this.limit - this.cursor < s_size) return false;
         if (this.current.slice(this.cursor, this.cursor + s_size) != s)
@@ -151,7 +151,7 @@ class BaseStemmer implements Stemmer
 	return true;
     }
 
-    function eq_s_b (s_size : int, s : string) : boolean
+    __noexport__ function eq_s_b (s_size : int, s : string) : boolean
     {
 	if (this.cursor - this.limit_backward < s_size) return false;
         if (this.current.slice(this.cursor - s_size, this.cursor) != s)
@@ -162,17 +162,17 @@ class BaseStemmer implements Stemmer
 	return true;
     }
 
-    function eq_v (s : string) : boolean
+    __noexport__ function eq_v (s : string) : boolean
     {
 	return this.eq_s(s.length, s);
     }
 
-    function eq_v_b (s : string) : boolean
+    __noexport__ function eq_v_b (s : string) : boolean
     {
         return this.eq_s_b(s.length, s);
     }
 
-    function find_among (v : Among[], v_size : int) : int
+    __noexport__ function find_among (v : Among[], v_size : int) : int
     {
 	var i = 0;
 	var j = v_size;
@@ -250,7 +250,7 @@ class BaseStemmer implements Stemmer
     }
 
     // find_among_b is for backwards processing. Same comments apply
-    function find_among_b (v : Among[], v_size : int) : int
+    __noexport__ function find_among_b (v : Among[], v_size : int) : int
     {
 	var i = 0;
 	var j = v_size;
@@ -319,7 +319,7 @@ class BaseStemmer implements Stemmer
     /* to replace chars between c_bra and c_ket in this.current by the
      * chars in s.
      */
-    function replace_s (c_bra : int, c_ket : int, s : string) : int
+    __noexport__ function replace_s (c_bra : int, c_ket : int, s : string) : int
     {
 	var adjustment = s.length - (c_ket - c_bra);
 	this.current = this.current.slice(0, c_bra) + s + this.current.slice(c_ket);
@@ -329,7 +329,7 @@ class BaseStemmer implements Stemmer
 	return adjustment;
     }
 
-    function slice_check () : boolean
+    __noexport__ function slice_check () : boolean
     {
         if (this.bra < 0 ||
             this.bra > this.ket ||
@@ -341,7 +341,7 @@ class BaseStemmer implements Stemmer
         return true;
     }
 
-    function slice_from (s : string) : boolean
+    __noexport__ function slice_from (s : string) : boolean
     {
         var result = false;
 	if (this.slice_check())
@@ -352,12 +352,12 @@ class BaseStemmer implements Stemmer
         return result;
     }
 
-    function slice_del () : boolean
+    __noexport__ function slice_del () : boolean
     {
 	return this.slice_from("");
     }
 
-    function insert (c_bra : int, c_ket : int, s : string) : void
+    __noexport__ function insert (c_bra : int, c_ket : int, s : string) : void
     {
         var adjustment = this.replace_s(c_bra, c_ket, s);
 	if (c_bra <= this.bra) this.bra += adjustment;
@@ -365,7 +365,7 @@ class BaseStemmer implements Stemmer
     }
 
     /* Copy the slice into the supplied StringBuffer */
-    function slice_to (s : string) : string
+    __noexport__ function slice_to (s : string) : string
     {
         var result = '';
 	if (this.slice_check())
@@ -375,12 +375,12 @@ class BaseStemmer implements Stemmer
         return result;
     }
 
-    function assign_to (s : string) : string
+    __noexport__ function assign_to (s : string) : string
     {
         return this.current.slice(0, this.limit);
     }
 
-    function stem () : boolean
+    __noexport__ function stem () : boolean
     {
         return false;
     }

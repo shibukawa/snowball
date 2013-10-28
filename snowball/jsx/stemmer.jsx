@@ -1,5 +1,5 @@
-interface Stemmer
+__export__ abstract class Stemmer
 {
-    function stemWord (word : string) : string;
-    function stemWords (words : string[]) : string[];
+    abstract function stemWord (word : string) : string;
+    abstract function stemWords (words : string[]) : string[];
 }
